@@ -39,7 +39,7 @@ export default function Card({itemName}: { itemName: string }) {
             renderStandardCard(rank, suit, modifiers, seal);
             setAdditionalInfo(renderAdditionalInfo(seal))
         }
-    }, [])
+    },[])
 
     function renderCard() {
         let itemData;

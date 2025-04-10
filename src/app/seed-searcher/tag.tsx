@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef} from "react";
 import {tags} from "@/const/SeedOptions";
 
 export default function Tag({tagName}:{tagName:string}) {

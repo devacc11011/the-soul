@@ -1,6 +1,6 @@
 'use client'
 import Script from "next/script";
-import React, {JSX, useEffect, useState} from "react";
+import React, {JSX, useState} from "react";
 import Voucher from "@/app/seed-searcher/voucher";
 import Boss from "@/app/seed-searcher/boss";
 import Tag from "@/app/seed-searcher/tag";
