@@ -1,13 +1,14 @@
 import React, {useEffect, useRef} from "react";
 import {tags} from "@/const/SeedOptions";
 
-export default function Tag({tagName}:{tagName:string}) {
+export default function Tag({tagName}: { tagName: string }) {
 
     const tagCanvas = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
         renderTag()
     })
+
     function renderTag() {
         const tagData = tags.find(tag => tag.name === tagName);
         if (!tagData) {
@@ -35,8 +36,9 @@ export default function Tag({tagName}:{tagName:string}) {
             );
         };
     }
-    return <>
-        <canvas ref={tagCanvas} width={34} height={34}></canvas>
-        <div className='tagName'>{tagName}</div>
-    </>
+
+    return <div className={'flex justify-center items-center flex-col mx-1'}>
+            <canvas ref={tagCanvas} width={34} height={34}></canvas>
+            <span className='text-center text-xs text-secondary'>{tagName}</span>
+    </div>
 }

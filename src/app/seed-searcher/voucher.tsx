@@ -40,6 +40,6 @@ export default function Voucher({voucherName}: { voucherName: string }) {
 
     return <>
         <canvas ref={voucherCanvas} width={71} height={95}></canvas>
-        <div className='voucherName'>{voucherName}</div>
+        <span className='text-xs text-center text-secondary'>{voucherName}</span>
     </>
 }

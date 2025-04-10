@@ -39,7 +39,7 @@ export default function Card({itemName}: { itemName: string }) {
             renderStandardCard(rank, suit, modifiers, seal);
             setAdditionalInfo(renderAdditionalInfo(seal))
         }
-    },[])
+    }, [])
 
     function renderCard() {
         let itemData;
@@ -321,7 +321,7 @@ export default function Card({itemName}: { itemName: string }) {
             <div className={'cardName'}></div>
             {
                 itemModifiers.map((modifier, index) => (
-                    <div className={'modifier'} key={index}
+                    <div className={'modifier text-xs'} key={index}
                          color={getModifierColor(modifier)}>
                         {modifier}
                     </div>)
@@ -329,7 +329,7 @@ export default function Card({itemName}: { itemName: string }) {
             }
             {
                 seal &&
-                <div className={'seal'}
+                <div className={'seal text-xs'}
                      color={getModifierColor(seal)}>
                     {seal}
                 </div>
@@ -337,14 +337,18 @@ export default function Card({itemName}: { itemName: string }) {
         </>
     }
 
-    return <>
+    return <div className={'flex justify-center items-center flex-col mx-1'}>
         <canvas ref={cardCanvas} width={71} height={95}></canvas>
-        {type === 'unknown' && <>
-            <span className='text-zinc-300 text-sm'>
+        {type === 'unknown' ? <>
+            <span className='text-xs text-secondary text-center'>
                 {getStandardCardName()}
             </span>
-            <span className='text-zinc-300 text-sm'>{additionalInfo}</span>
-        </>
+                <span className='text-zinc-300 text-sm'>{additionalInfo}</span>
+            </>
+            :
+            <span className={'text-xs text-secondary text-center'}>
+                {itemName}
+            </span>
         }
-    </>
+    </div>
 }

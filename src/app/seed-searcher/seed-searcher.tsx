@@ -12,7 +12,7 @@ import Modal from "@/components/modal";
 
 export default function SeedSearcher() {
     const [isOpenCheckboxOverray, setOpenCheckboxOverray] = useState(false);
-    const handleOverlay = (onOff?:unknown):undefined => {
+    const handleOverlay = (onOff?: unknown): undefined => {
         if (typeof onOff !== "boolean") {
             setOpenCheckboxOverray(!isOpenCheckboxOverray)
         } else if (onOff === true) {
@@ -21,7 +21,7 @@ export default function SeedSearcher() {
             setOpenCheckboxOverray(false)
         }
     }
-    const [isLoading,setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [optionsRef, setOptions] = useState<LockOption>(lockOptions);
     const renderedItems: React.ReactElement[] = []
     const handleCheckboxChange = (key: string) => {
@@ -104,12 +104,13 @@ export default function SeedSearcher() {
         setversionSelect(e.target.value as unknown as number);
     }
 
-    function _performAnalysis(){
+    function _performAnalysis() {
         setIsLoading(true);
-        setTimeout(()=>{
+        setTimeout(() => {
             performAnalysis()
-        },100)
+        }, 100)
     }
+
     function performAnalysis() {
         setIsLoading(true);
         // Get input values
@@ -309,82 +310,79 @@ export default function SeedSearcher() {
 
 
     // Function to create and display the side-scrolling list
-    function displayShopQueues(ouput:string) {
+    function displayShopQueues(ouput: string) {
         const shopQueues = extractShopQueues(ouput);
         const shopQueueDisplay: JSX.Element[] = shopQueues.map(({title, queue, boss, voucher, tags, packs}, index) => {
-            return <div className='queueContainer' key={index}>
-                <div className='text-info font-semibold'>{title}</div>
-                <div className='queueInfo'>
-                    <div>
-                        <PhaseTitle>Voucher</PhaseTitle>
-                        {
-                            voucher && (
-                                <div className='voucherContainer'>
-                                    <Voucher voucherName={voucher}/>
-                                </div>
-                            )
-                        }
-                    </div>
-                    <div className='bossElement'>
-                        <PhaseTitle>Boss</PhaseTitle>
-                        {
-                            boss && <div className='bossContainer'>
-                                <Boss bossName={boss}></Boss>
-                                <div className='bossName'>
-                                    {boss}
-                                </div>
-                            </div>
-                        }
-                    </div>
-                    <div>
-                        <PhaseTitle>Tags</PhaseTitle>
-                        <div className='tagContainer'>
+            return <div className='card bg-base-300 my-2' key={index}>
+                <div className={'card-body'}>
+                    <div className='card-title font-semibold min-w-lvh text-info'>{title}</div>
+                    <div className='queueInfo card-actions'>
+                        <div>
+                            <PhaseTitle>Voucher</PhaseTitle>
                             {
-                                tags.map((tag,index) =>
-                                    <div className='tagContainer' key={index}>
-                                        <Tag tagName={tag}/>
+                                voucher && (
+                                    <div className='voucherContainer'>
+                                        <Voucher voucherName={voucher}/>
                                     </div>
                                 )
                             }
                         </div>
-                    </div>
-                </div>
-                <div className={'flex max-w-dvw overflow-x-auto'}>
-                    {
-                        queue.map((item, index) => {
-                            return (
-                                <div className={'queueItem'} key={index}>
-                                    <Card itemName={item} key={index}/>
-                                </div>
-                            )
-                        })
-                    }
-                </div>
-                {
-                    packs.length > 0 &&
-                    <>
-                        <div className='queueTitle'>
-                            ==Packs==
-                        </div>
-                        <div className='packsContainer'>
+                        <div className='bossElement'>
+                            <PhaseTitle>Boss</PhaseTitle>
                             {
-                                packs.map((pack, index) => {
-                                    const packItems = pack.split(' - ');
-                                    const packName = packItems[0];
-                                    const packCards = packItems[1] ? packItems[1].split(', ') : [];
-                                    return <div className={'packItem'} key={index}>
-                                        <div className={'packName'}>{packName + ': '}</div>
-                                        {
-                                            packCards.map((cardName,index) =>
-                                                <Card itemName={cardName} key={`${cardName}${index}`}/>
-                                            )
-                                        }
-                                    </div>
-                                })
+                                boss && <div className='bossContainer'>
+                                    <Boss bossName={boss}></Boss>
+                                </div>
                             }
                         </div>
-                    </>
-                }
+                        <div>
+                            <PhaseTitle>Tags</PhaseTitle>
+                            <div className={'flex max-w-dvw overflow-x-auto'}>                            {
+                                tags.map((tag, index) =>
+                                    <Tag tagName={tag} key={index}/>
+                                )
+                            }
+                            </div>
+                        </div>
+                    </div>
+                    <div className={'flex max-w-dvw overflow-x-auto'}>
+                        {
+                            queue.map((item, index) => {
+                                return (
+                                    <div className={'queueItem'} key={index}>
+                                        <Card itemName={item} key={index}/>
+                                    </div>
+                                )
+                            })
+                        }
+                    </div>
+                    {
+                        packs.length > 0 &&
+                        <>
+                            <div className='queueTitle'>
+                                ==Packs==
+                            </div>
+                            <div className='packsContainer'>
+                                {
+                                    packs.map((pack, index) => {
+                                        const packItems = pack.split(' - ');
+                                        const packName = packItems[0];
+                                        const packCards = packItems[1] ? packItems[1].split(', ') : [];
+                                        return <div className={'packName'} key={index}>{packName + ': '}
+                                            <div className={'flex max-w-dvw overflow-x-auto'}>
+                                                {
+                                                    packCards.map((cardName, index) =>
+                                                        <Card itemName={cardName} key={`${cardName}${index}`}/>
+                                                    )
+                                                }
+                                            </div>
+                                        </div>
+                                    })
+                                }
+                            </div>
+                        </>
+                    }
+                </div>
             </div>
         });
         setDisplayElement(() => shopQueueDisplay)
@@ -423,11 +421,13 @@ export default function SeedSearcher() {
                 <div className="card bg-base-300 p-3">
                     <h1 className='text-accent font-semibold'>Settings</h1>
                     <label className='label' htmlFor="seed">Seed</label>
-                    <input className='input' type="text" maxLength={8} pattern="[A-Z1-9]{1,8}" required value={seedInput}
+                    <input className='input' type="text" maxLength={8} pattern="[A-Z1-9]{1,8}" required
+                           value={seedInput}
                            onChange={handleSeedChange}/>
                     <br/>
                     <label className='label' htmlFor="ante">Max Ante:</label>
-                    <input className='input' type="number" value={anteInput} onChange={handleAnteInput} min="1" max="999" required/>
+                    <input className='input' type="number" value={anteInput} onChange={handleAnteInput} min="1"
+                           max="999" required/>
                     <br/>
                     <label className='label' htmlFor="cardsPerAnte">Cards per Ante:</label>
                     <input className='input' type="text" id="cardsPerAnte"
@@ -448,7 +448,7 @@ export default function SeedSearcher() {
                     <label className='label' htmlFor="stake">Stake:</label>
                     <select className='select' value={stakeSelect} required onChange={handleStakeSelect}>
                         {
-                            stakeOption.map((option,index) =>
+                            stakeOption.map((option, index) =>
                                 <option key={index} value={option}>{option}</option>
                             )
                         }
@@ -466,7 +466,7 @@ export default function SeedSearcher() {
                     </select>
                     <br/>
                     <button className='btn btn-primary btn-outline' onClick={handleOverlay}>Modify Unlocks</button>
-                    {isOpenCheckboxOverray && <div >
+                    {isOpenCheckboxOverray && <div>
                         <div className='flex'>
                             <button className='btn btn-secondary grow m-1' onClick={handleUnlock}>Unlock All</button>
                             <button className='btn btn-secondary grow m-1' onClick={handleLock}>Lock All</button>
@@ -478,10 +478,10 @@ export default function SeedSearcher() {
                                 {Object.entries(optionsRef).map(([key, data]) => (
                                     <li key={key}>
                                         <input className='checkbox'
-                                            type="checkbox"
-                                            id={key}
-                                            checked={optionsRef[key].selected}
-                                            onChange={() => handleCheckboxChange(key)}
+                                               type="checkbox"
+                                               id={key}
+                                               checked={optionsRef[key].selected}
+                                               onChange={() => handleCheckboxChange(key)}
                                         />
                                         {/* JSX에서는 label의 for 속성이 아니라 htmlFor를 사용해야 함 */}
                                         <label className='label' htmlFor={key}>{data.name}</label>
@@ -496,7 +496,8 @@ export default function SeedSearcher() {
                 {/*search result*/}
                 <div className="card bg-base-300 p-3">
                     <h1 className='text-accent font-semibold'>Output</h1>
-                    <textarea value={outputBox} rows={16} readOnly className='textarea w-full h-full whitespace-pre-wrap'></textarea>
+                    <textarea value={outputBox} rows={16} readOnly
+                              className='textarea w-full h-full whitespace-pre-wrap'></textarea>
                 </div>
                 {/*visual result*/}
                 <div className="display-container md:col-span-2">

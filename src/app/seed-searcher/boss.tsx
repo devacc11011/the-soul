@@ -1,12 +1,13 @@
-import {useEffect, useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import {bosses} from "@/const/SeedOptions";
 
-export default function Boss({bossName}:{bossName:string}) {
+export default function Boss({bossName}: { bossName: string }) {
     const bossCanvas = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
         renderVoucherTest()
     })
+
     function renderVoucherTest() {
         const bossData = bosses.find(boss => boss.name === bossName);
         if (!bossData) {
@@ -34,5 +35,11 @@ export default function Boss({bossName}:{bossName:string}) {
             );
         };
     }
-    return <canvas ref={bossCanvas} width={34} height={34}></canvas>
+
+    return <div className={'flex justify-center items-center flex-col mx-1'}>
+        <canvas ref={bossCanvas} width={34} height={34}></canvas>
+        <span className='text-center text-xs text-secondarye'>
+            {bossName}
+        </span>
+    </div>
 }
