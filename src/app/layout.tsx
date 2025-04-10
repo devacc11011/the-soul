@@ -29,6 +29,7 @@ export default function RootLayout({
         <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
+        <div id="portal"/>
         <Navbar/>
         <div className="">
             <main className="min-h-dvh px-2">

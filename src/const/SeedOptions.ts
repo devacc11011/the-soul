@@ -538,10 +538,42 @@ export const tags = [
         "pos": {"x": 0, "y": 3}
     }, {"name": "Orbital Tag", "pos": {"x": 5, "y": 2}}, {"name": "Economy Tag", "pos": {"x": 4, "y": 3}}
 ];
+export const stakeOption = [
+    "White Stake",
+    "Red Stake",
+    "Green Stake",
+    "Black Stake",
+    "Blue Stake",
+    "Purple Stake",
+    "Orange Stake",
+    "Gold Stake"
+] as const
 
+export const deckOption = [
+    "Red Deck",
+    "Blue Deck",
+    "Yellow Deck",
+    "Green Deck",
+    "Black Deck",
+    "Magic Deck",
+    "Nebula Deck",
+    "Ghost Deck",
+    "Abandoned Deck",
+    "Checkered Deck",
+    "Zodiac Deck",
+    "Painted Deck",
+    "Anaglyph Deck",
+    "Plasma Deck",
+    "Erratic Deck",
+] as const
 export const suitMap = {
     'Hearts': 0, 'Clubs': 1, 'Diamonds': 2, 'Spades': 3
 };
+export const versionOption = [
+    {key: 10106, name: "1.0.1f"},
+    {key: 10103, name: "1.0.1c"},
+    {key: 10014, name: "1.0.0n"}
+]
 
 export const modifiers = ['Foil', 'Holographic', 'Polychrome', 'Negative'] as const;
 

@@ -5,9 +5,10 @@ import Voucher from "@/app/seed-searcher/voucher";
 import Boss from "@/app/seed-searcher/boss";
 import Tag from "@/app/seed-searcher/tag";
 import Card from "@/app/seed-searcher/card";
-import {lockOptions} from "@/const/SeedOptions";
+import {deckOption, lockOptions, stakeOption, versionOption} from "@/const/SeedOptions";
 import {LockOption} from "@/types/SeedOptionTypes";
 import PhaseTitle from "@/app/PhaseTitle";
+import Modal from "@/components/modal";
 
 export default function SeedSearcher() {
     const [isOpenCheckboxOverray, setOpenCheckboxOverray] = useState(false);
@@ -20,40 +21,7 @@ export default function SeedSearcher() {
             setOpenCheckboxOverray(false)
         }
     }
-    const deckOption = [
-        "Red Deck",
-        "Blue Deck",
-        "Yellow Deck",
-        "Green Deck",
-        "Black Deck",
-        "Magic Deck",
-        "Nebula Deck",
-        "Ghost Deck",
-        "Abandoned Deck",
-        "Checkered Deck",
-        "Zodiac Deck",
-        "Painted Deck",
-        "Anaglyph Deck",
-        "Plasma Deck",
-        "Erratic Deck",
-    ] as const
-
-    const stakeOption = [
-        "White Stake",
-        "Red Stake",
-        "Green Stake",
-        "Black Stake",
-        "Blue Stake",
-        "Purple Stake",
-        "Orange Stake",
-        "Gold Stake"
-    ] as const
-
-    const versionOption = [
-        {key: 10106, name: "1.0.1f"},
-        {key: 10103, name: "1.0.1c"},
-        {key: 10014, name: "1.0.0n"}
-    ]
+    const [isLoading,setIsLoading] = useState(false);
     const [optionsRef, setOptions] = useState<LockOption>(lockOptions);
     const renderedItems: React.ReactElement[] = []
     const handleCheckboxChange = (key: string) => {
@@ -136,7 +104,14 @@ export default function SeedSearcher() {
         setversionSelect(e.target.value as unknown as number);
     }
 
+    function _performAnalysis(){
+        setIsLoading(true);
+        setTimeout(()=>{
+            performAnalysis()
+        },100)
+    }
     function performAnalysis() {
+        setIsLoading(true);
         // Get input values
         const ante = anteInput;
         const cardsPerAnte = cardsPerAnteInput.split(',').map(Number);
@@ -286,11 +261,12 @@ export default function SeedSearcher() {
 
         // Update output box with analysis result
         setoutputBox(() => output)
+        displayShopQueues(output);
+        setIsLoading(false);
     }
 
-    useEffect(() => {
-        displayShopQueues();
-    }, [outputBox]);
+    // useEffect(() => {
+    // }, [outputBox]);
 
 
     type shopItem = {
@@ -333,8 +309,8 @@ export default function SeedSearcher() {
 
 
     // Function to create and display the side-scrolling list
-    function displayShopQueues() {
-        const shopQueues = extractShopQueues(outputBox);
+    function displayShopQueues(ouput:string) {
+        const shopQueues = extractShopQueues(ouput);
         const shopQueueDisplay: JSX.Element[] = shopQueues.map(({title, queue, boss, voucher, tags, packs}, index) => {
             return <div className='queueContainer' key={index}>
                 <div className='text-info font-semibold'>{title}</div>
@@ -373,7 +349,7 @@ export default function SeedSearcher() {
                         </div>
                     </div>
                 </div>
-                <div className={'flex'}>
+                <div className={'flex max-w-dvw overflow-x-auto'}>
                     {
                         queue.map((item, index) => {
                             return (
@@ -442,7 +418,7 @@ export default function SeedSearcher() {
                     }
                 `}
             </Script>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2  gap-2">
                 {/*setting*/}
                 <div className="card bg-base-300 p-3">
                     <h1 className='text-accent font-semibold'>Settings</h1>
@@ -515,18 +491,19 @@ export default function SeedSearcher() {
                         </div>
                     </div>}
                     <br/>
-                    <button onClick={performAnalysis} className={'btn btn-primary'}>Analyze</button>
+                    <button onClick={_performAnalysis} className={'btn btn-primary'}>Analyze</button>
                 </div>
                 {/*search result*/}
                 <div className="card bg-base-300 p-3">
                     <h1 className='text-accent font-semibold'>Output</h1>
-                    <textarea value={outputBox} rows={16} readOnly className='input w-full h-full whitespace-pre-wrap'></textarea>
+                    <textarea value={outputBox} rows={16} readOnly className='textarea w-full h-full whitespace-pre-wrap'></textarea>
                 </div>
                 {/*visual result*/}
-                <div className="display-container">
+                <div className="display-container md:col-span-2">
                     {displayElement}
                 </div>
             </div>
+            {isLoading && <Modal>Analyzing...</Modal>}
         </>
     )
 }
