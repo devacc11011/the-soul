@@ -1,6 +1,5 @@
 import {ReactNode} from 'react';
 import ReactDOM from 'react-dom';
-import style from './modal.module.css'
 interface IPortalProps {
     children: ReactNode;
 }
