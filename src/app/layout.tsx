@@ -32,7 +32,7 @@ export default function RootLayout({
         <div id="portal"/>
         <Navbar/>
         <div className="">
-            <main className="min-h-dvh px-2">
+            <main className="min-h-dvh">
                 {children}
             </main>
             <Footer/>

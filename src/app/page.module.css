@@ -1,0 +1,40 @@
+.heroContainer {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.backgroundWrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100lvw;
+    height: 100lvh;
+    z-index: 1;
+}
+
+.bgImage {
+    filter: blur(5px);
+}
+
+.grayOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(50, 50, 50, 0.6); /* 회색빛 추가 */
+    z-index: 2;
+}
+
+.overlayText {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    font-size: 32px;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+}
