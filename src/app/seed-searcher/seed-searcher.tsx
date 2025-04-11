@@ -1,6 +1,6 @@
 'use client'
 import Script from "next/script";
-import React, {JSX, useState} from "react";
+import React, {JSX, ReactNode, useState} from "react";
 import Voucher from "@/app/seed-searcher/voucher";
 import Boss from "@/app/seed-searcher/boss";
 import Tag from "@/app/seed-searcher/tag";
@@ -315,7 +315,7 @@ export default function SeedSearcher() {
         const shopQueueDisplay: JSX.Element[] = shopQueues.map(({title, queue, boss, voucher, tags, packs}, index) => {
             return <div className='card bg-base-300 my-2' key={index}>
                 <div className={'card-body'}>
-                    <div className='card-title font-semibold min-w-lvh text-info'>{title}</div>
+                    <div className='card-title font-semibold min-w-lvh text-accent'>{title}</div>
                     <div className='queueInfo card-actions'>
                         <div>
                             <PhaseTitle>Voucher</PhaseTitle>
@@ -391,6 +391,34 @@ export default function SeedSearcher() {
 
     }
 
+    const [searchInput,setSearchInput] = useState('');
+    const [searchOuput,setSearchOuput] = useState<ReactNode>([]);
+    function searchCard():undefined{
+        const tempOutput:React.ReactNode[] = [];
+        setSearchOuput([])
+
+        const shopItems = extractShopQueues(outputBox);
+        for (let i1 = 0; i1 < shopItems.length; i1++){
+            const item = shopItems[i1];
+            for (let i = 0; i < item.packs.length; i++){
+                const pack = item.packs[i];
+                if(pack.includes(searchInput)){
+                    tempOutput.push(<li key={`${i1}pack${i}`}>{item.title} {pack}</li>)
+                }
+            }
+            for (let i = 0; i < item.queue.length; i++) {
+                const queue = item.queue[i];
+                if(queue.includes(searchInput)){
+                    tempOutput.push(<li key={`${i1}item${i}`}>{item.title} {queue}</li>)
+                }
+            }
+        }
+        setSearchOuput(tempOutput)
+    }
+
+    function handleSearchChange(e:React.ChangeEvent<HTMLInputElement>) {
+        setSearchInput(e.target.value);
+    }
 
     return (<>
             <Script src="/immolate.js" strategy="lazyOnload"/>
@@ -493,11 +521,25 @@ export default function SeedSearcher() {
                     <br/>
                     <button onClick={_performAnalysis} className={'btn btn-primary'}>Analyze</button>
                 </div>
-                {/*search result*/}
+                {/*analyze result*/}
                 <div className="card bg-base-300 p-3">
                     <h1 className='text-accent font-semibold'>Output</h1>
                     <textarea value={outputBox} rows={16} readOnly
                               className='textarea w-full h-full whitespace-pre-wrap'></textarea>
+                </div>
+                {/*search*/}
+                <div className="card bg-base-300 p-3 md:col-span-2">
+                    <div className={'join flex justify-center'}>
+                        <input className={'input join-item'} type='text' value={searchInput}
+                        onChange={handleSearchChange} minLength={4} placeholder='Search Card or Pack'/>
+                        <button className={'btn btn-accent join-item'} onClick={searchCard}>Search</button>
+                    </div>
+                    <div>
+                        <h2>Search Result</h2>
+                        <ul>
+                            {searchOuput}
+                        </ul>
+                    </div>
                 </div>
                 {/*visual result*/}
                 <div className="display-container md:col-span-2">

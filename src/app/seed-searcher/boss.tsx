@@ -38,7 +38,7 @@ export default function Boss({bossName}: { bossName: string }) {
 
     return <div className={'flex justify-center items-center flex-col mx-1'}>
         <canvas ref={bossCanvas} width={34} height={34}></canvas>
-        <span className='text-center text-xs text-secondarye'>
+        <span className='text-center text-xs text-secondary'>
             {bossName}
         </span>
     </div>

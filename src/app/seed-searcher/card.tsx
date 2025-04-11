@@ -343,7 +343,7 @@ export default function Card({itemName}: { itemName: string }) {
             <span className='text-xs text-secondary text-center'>
                 {getStandardCardName()}
             </span>
-                <span className='text-zinc-300 text-sm'>{additionalInfo}</span>
+                <span className='text-secondary text-sm'>{additionalInfo}</span>
             </>
             :
             <span className={'text-xs text-secondary text-center'}>
