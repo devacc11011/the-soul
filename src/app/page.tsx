@@ -18,9 +18,9 @@ export default function Home() {
             <div className={style.grayOverlay} />
         </div>
         <div className={style.overlayText}>
-            The-Soul is your fan site for <a href={'https://github.com/SpectralPack/TheSoul'} className={'text-red-400'}
-        >The-Soul & Immolate</a> and the heart of the Balatro community — complete
-            with strategy forums and a powerful seed tracker.
+            A community and seed tracker for Balatro — the fan site for
+            <a href={'https://github.com/SpectralPack/TheSoul'} className={'text-red-400'}
+            > The-Soul & Immolate</a>
         </div>
     </div>
     );
