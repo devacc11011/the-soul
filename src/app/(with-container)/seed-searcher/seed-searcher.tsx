@@ -1,10 +1,10 @@
 'use client'
 import Script from "next/script";
 import React, {JSX, ReactNode, useEffect, useState} from "react";
-import Voucher from "@/app/seed-searcher/voucher";
-import Boss from "@/app/seed-searcher/boss";
-import Tag from "@/app/seed-searcher/tag";
-import Card from "@/app/seed-searcher/card";
+import Voucher from "@/app/(with-container)/seed-searcher/voucher";
+import Boss from "@/app/(with-container)/seed-searcher/boss";
+import Tag from "@/app/(with-container)/seed-searcher/tag";
+import Card from "@/app/(with-container)/seed-searcher/card";
 import {deckOption, lockOptions, stakeOption, versionOption} from "@/const/SeedOptions";
 import {LockOption} from "@/types/SeedOptionTypes";
 import PhaseTitle from "@/app/PhaseTitle";
