@@ -1,7 +1,10 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-    themes: light --default, dark --prefersdark, dracula;
+    themes: light --default, dark --prefersdark, synthwave;
 }
 body {
     font-family: var(--font-geist-sans), sans-serif;
+}
+.clickable{
+    cursor: pointer;
 }
