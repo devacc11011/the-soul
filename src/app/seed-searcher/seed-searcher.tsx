@@ -1,6 +1,6 @@
 'use client'
 import Script from "next/script";
-import React, {JSX, ReactNode, useState} from "react";
+import React, {JSX, ReactNode, useEffect, useState} from "react";
 import Voucher from "@/app/seed-searcher/voucher";
 import Boss from "@/app/seed-searcher/boss";
 import Tag from "@/app/seed-searcher/tag";
@@ -22,10 +22,10 @@ export default function SeedSearcher() {
         }
     }
     const [isLoading, setIsLoading] = useState(false);
-    const [optionsRef, setOptions] = useState<LockOption>(lockOptions);
+    const [lockOption, setLockOption] = useState<LockOption>(lockOptions);
     const renderedItems: React.ReactElement[] = []
     const handleCheckboxChange = (key: string) => {
-        setOptions((prevState) => {
+        setLockOption((prevState) => {
             // 새로운 객체로 복사하여 불변성을 유지함
             const newItem = {
                 ...prevState[key],
@@ -38,7 +38,7 @@ export default function SeedSearcher() {
         });
     };
 
-    Object.values(optionsRef).forEach((item, index) => {
+    Object.values(lockOption).forEach((item, index) => {
         renderedItems.push(
             <li key={index}>
                 <input className='input' type='checkbox' value={item.name}
@@ -72,7 +72,7 @@ export default function SeedSearcher() {
     }
 
     const saveLock = (newOptions: LockOption) => {
-        setOptions(() => newOptions);
+        setLockOption(() => newOptions);
         handleOverlay(false)
     }
 
@@ -86,7 +86,7 @@ export default function SeedSearcher() {
     const [versionSelect, setversionSelect] = useState(versionOption[0].key);
     const [outputBox, setoutputBox] = useState('');
     const [anteInput, setAnte] = useState(39)
-    const [cardsPerAnteInput, cardsPerAnte] = useState('50,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150');
+    const [cardsPerAnteInput, setCardsPerAnte] = useState('50,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150');
 
     const handleStakeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setstakeSelect(e.target.value as typeof stakeOption[number]);
@@ -98,7 +98,7 @@ export default function SeedSearcher() {
         setAnte(e.target.value as unknown as number);
     }
     const handleCardsPerAnte = (e: React.ChangeEvent<HTMLInputElement>) => {
-        cardsPerAnte(e.target.value);
+        setCardsPerAnte(e.target.value);
     }
     const handleVersionSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setversionSelect(e.target.value as unknown as number);
@@ -109,6 +109,69 @@ export default function SeedSearcher() {
         setTimeout(() => {
             performAnalysis()
         }, 100)
+        saveConfig()
+        refreshConfig()
+    }
+
+    type Config = {
+        [key: string]: {
+            deckSelect: typeof deckOption[number]
+            stakeSelect: typeof stakeOption[number]
+            versionSelect: number
+            anteInput: number
+            cardsPerAnteInput: string
+            lockOption: LockOption,
+            createdTime: number
+        }
+    }
+
+    function saveConfig() {
+        const configs = getConfigs();
+        configs[seedInput] = {
+            deckSelect,
+            stakeSelect,
+            versionSelect,
+            anteInput,
+            cardsPerAnteInput,
+            lockOption,
+            createdTime: new Date().getTime()
+        }
+        localStorage.setItem("configs", JSON.stringify(configs));
+    }
+
+    const [recentConfig, setRecentConfig] = useState<Config>({})
+
+    function refreshConfig() {
+        const config = getConfigs();
+        setRecentConfig(config)
+
+    }
+
+    function getConfigs() {
+        return (JSON.parse(localStorage.getItem('configs') ?? '{}')) as unknown as Config
+    }
+
+    useEffect(() => {
+        refreshConfig()
+    }, []);
+
+    function loadConfig(seed: string): undefined {
+        const loadedInput = recentConfig[seed]
+        const {
+            deckSelect,
+            stakeSelect,
+            versionSelect,
+            anteInput,
+            cardsPerAnteInput,
+            lockOption
+        } = loadedInput
+        setseedInput(seed)
+        setdeckSelect(deckSelect)
+        setstakeSelect(stakeSelect)
+        setversionSelect(versionSelect)
+        setAnte(anteInput)
+        setCardsPerAnte(cardsPerAnteInput)
+        setLockOption(lockOption)
     }
 
     function performAnalysis() {
@@ -145,8 +208,8 @@ export default function SeedSearcher() {
         inst.lock("Petroglyph");
         inst.lock("Retcon");
         inst.lock("Palette");
-        for (const key in optionsRef) {
-            if (!optionsRef[key].selected) inst.lock(key)
+        for (const key in lockOption) {
+            if (!lockOption[key].selected) inst.lock(key)
         }
         inst.setStake(stake);
         inst.setDeck(deck);
@@ -162,7 +225,7 @@ export default function SeedSearcher() {
             for (let i = 0; i < Immolate.VOUCHERS.size(); i += 2) {
                 if (Immolate.VOUCHERS.get(i) == voucher) {
                     // Only unlock it if it's unlockable
-                    if (optionsRef[Immolate.VOUCHERS.get(i + 1)]) {
+                    if (lockOption[Immolate.VOUCHERS.get(i + 1)]) {
                         inst.unlock(Immolate.VOUCHERS.get(i + 1));
                     }
                 }
@@ -265,10 +328,6 @@ export default function SeedSearcher() {
         displayShopQueues(output);
         setIsLoading(false);
     }
-
-    // useEffect(() => {
-    // }, [outputBox]);
-
 
     type shopItem = {
         title: string, queue: string[], boss: string, voucher: string, tags: string[], packs: string[]
@@ -391,24 +450,25 @@ export default function SeedSearcher() {
 
     }
 
-    const [searchInput,setSearchInput] = useState('');
-    const [searchOuput,setSearchOuput] = useState<ReactNode>([]);
-    function searchCard():undefined{
-        const tempOutput:React.ReactNode[] = [];
+    const [searchInput, setSearchInput] = useState('');
+    const [searchOuput, setSearchOuput] = useState<ReactNode>([]);
+
+    function searchCard(): undefined {
+        const tempOutput: React.ReactNode[] = [];
         setSearchOuput([])
 
         const shopItems = extractShopQueues(outputBox);
-        for (let i1 = 0; i1 < shopItems.length; i1++){
+        for (let i1 = 0; i1 < shopItems.length; i1++) {
             const item = shopItems[i1];
-            for (let i = 0; i < item.packs.length; i++){
+            for (let i = 0; i < item.packs.length; i++) {
                 const pack = item.packs[i];
-                if(pack.includes(searchInput)){
+                if (pack.includes(searchInput)) {
                     tempOutput.push(<li key={`${i1}pack${i}`}>{item.title} {pack}</li>)
                 }
             }
             for (let i = 0; i < item.queue.length; i++) {
                 const queue = item.queue[i];
-                if(queue.includes(searchInput)){
+                if (queue.includes(searchInput)) {
                     tempOutput.push(<li key={`${i1}item${i}`}>{item.title} {queue}</li>)
                 }
             }
@@ -416,7 +476,7 @@ export default function SeedSearcher() {
         setSearchOuput(tempOutput)
     }
 
-    function handleSearchChange(e:React.ChangeEvent<HTMLInputElement>) {
+    function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
         setSearchInput(e.target.value);
     }
 
@@ -445,6 +505,19 @@ export default function SeedSearcher() {
                 `}
             </Script>
             <div className="grid grid-cols-1 md:grid-cols-2  gap-2">
+                {/*recent config*/}
+                <div className='card bg-base-300 p-3 col-span-2'>
+                    <h1 className='text-accent font-semibold'>Recent</h1>
+                    <ul className={'flex overflow-x-auto'}>
+                        {Object.entries(recentConfig)
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                            .sort(([key, val], [key2, val2]) =>
+                                val2.createdTime - val.createdTime)
+                            .map(([key], index) =>
+                                <li key={index} className={'mx-2 clickable'}
+                                    onClick={loadConfig.bind(null, key)}>{key}</li>)}
+                    </ul>
+                </div>
                 {/*setting*/}
                 <div className="card bg-base-300 p-3">
                     <h1 className='text-accent font-semibold'>Settings</h1>
@@ -503,12 +576,12 @@ export default function SeedSearcher() {
                             <h2>Unlocked Items</h2>
                             <ul className='list-group'>
                                 {/*{renderedItems}*/}
-                                {Object.entries(optionsRef).map(([key, data]) => (
+                                {Object.entries(lockOption).map(([key, data]) => (
                                     <li key={key}>
                                         <input className='checkbox'
                                                type="checkbox"
                                                id={key}
-                                               checked={optionsRef[key].selected}
+                                               checked={lockOption[key].selected}
                                                onChange={() => handleCheckboxChange(key)}
                                         />
                                         {/* JSX에서는 label의 for 속성이 아니라 htmlFor를 사용해야 함 */}
@@ -531,7 +604,7 @@ export default function SeedSearcher() {
                 <div className="card bg-base-300 p-3 md:col-span-2">
                     <div className={'join flex justify-center'}>
                         <input className={'input join-item'} type='text' value={searchInput}
-                        onChange={handleSearchChange} minLength={4} placeholder='Search Card or Pack'/>
+                               onChange={handleSearchChange} minLength={4} placeholder='Search Card or Pack'/>
                         <button className={'btn btn-accent join-item'} onClick={searchCard}>Search</button>
                     </div>
                     <div>
