@@ -506,7 +506,7 @@ export default function SeedSearcher() {
             </Script>
             <div className="grid grid-cols-1 md:grid-cols-2  gap-2">
                 {/*recent config*/}
-                <div className='card bg-base-300 p-3 col-span-2'>
+                <div className='card bg-base-300 p-3 md:col-span-2'>
                     <h1 className='text-accent font-semibold'>Recent</h1>
                     <ul className={'flex overflow-x-auto'}>
                         {Object.entries(recentConfig)
