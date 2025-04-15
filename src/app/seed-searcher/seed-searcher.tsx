@@ -120,7 +120,8 @@ export default function SeedSearcher() {
             versionSelect: number
             anteInput: number
             cardsPerAnteInput: string
-            lockOption: LockOption
+            lockOption: LockOption,
+            createdTime: number
         }
     }
 
@@ -132,7 +133,8 @@ export default function SeedSearcher() {
             versionSelect,
             anteInput,
             cardsPerAnteInput,
-            lockOption
+            lockOption,
+            createdTime: new Date().getTime()
         }
         localStorage.setItem("configs", JSON.stringify(configs));
     }
@@ -506,10 +508,14 @@ export default function SeedSearcher() {
                 {/*recent config*/}
                 <div className='card bg-base-300 p-3 col-span-2'>
                     <h1 className='text-accent font-semibold'>Recent</h1>
-                    <ul className={'menu menu-horizontal'}>
-                        {Object.keys(recentConfig).map((value, index) =>
-                            <li key={index} className={'mx-2 clickable'}
-                                onClick={loadConfig.bind(null, value)}>{value}</li>)}
+                    <ul className={'flex overflow-x-auto'}>
+                        {Object.entries(recentConfig)
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                            .sort(([key, val], [key2, val2]) =>
+                                val2.createdTime - val.createdTime)
+                            .map(([key], index) =>
+                                <li key={index} className={'mx-2 clickable'}
+                                    onClick={loadConfig.bind(null, key)}>{key}</li>)}
                     </ul>
                 </div>
                 {/*setting*/}
