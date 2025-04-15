@@ -374,7 +374,7 @@ export default function SeedSearcher() {
         const shopQueueDisplay: JSX.Element[] = shopQueues.map(({title, queue, boss, voucher, tags, packs}, index) => {
             return <div className='card bg-base-300 my-2' key={index}>
                 <div className={'card-body'}>
-                    <div className='card-title font-semibold min-w-lvh text-accent'>{title}</div>
+                    <div className='card-title font-semibold text-accent'>{title}</div>
                     <div className='queueInfo card-actions'>
                         <div>
                             <PhaseTitle>Voucher</PhaseTitle>
