@@ -2,3 +2,6 @@
 @plugin "daisyui" {
     themes: light --default, dark --prefersdark, dracula;
 }
+body {
+    font-family: var(--font-geist-sans), sans-serif;
+}
