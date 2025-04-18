@@ -480,6 +480,11 @@ export default function SeedSearcher() {
         setSearchInput(e.target.value);
     }
 
+    async function copySeed(): Promise<undefined> {
+        await navigator.clipboard.writeText(seedInput);
+        alert("Copied!");
+    }
+
     return (<>
             <Script src="/immolate.js" strategy="lazyOnload"/>
             <Script id="module-init" strategy="lazyOnload">
@@ -522,9 +527,12 @@ export default function SeedSearcher() {
                 <div className="card bg-base-300 p-3">
                     <h1 className='text-accent font-semibold'>Settings</h1>
                     <label className='label' htmlFor="seed">Seed</label>
-                    <input className='input' type="text" maxLength={8} pattern="[A-Z1-9]{1,8}" required
-                           value={seedInput}
-                           onChange={handleSeedChange}/>
+                    <div className={'join'}>
+                        <input className='input join-item' type="text" maxLength={8} pattern="[A-Z1-9]{1,8}" required
+                               value={seedInput}
+                               onChange={handleSeedChange}/>
+                        <button className={'btn btn-secondary join-item'} onClick={copySeed}>Copy</button>
+                    </div>
                     <br/>
                     <label className='label' htmlFor="ante">Max Ante:</label>
                     <input className='input' type="number" value={anteInput} onChange={handleAnteInput} min="1"
