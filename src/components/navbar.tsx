@@ -18,7 +18,7 @@ export default function Navbar() {
 
   return (
     <nav className="shadow-md bg-base-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* 로고 */}
           <div className="flex-shrink-0 flex items-center">
