@@ -9,486 +9,496 @@ import {deckOption, lockOptions, stakeOption, versionOption} from "@/const/SeedO
 import {LockOption} from "@/types/SeedOptionTypes";
 import PhaseTitle from "@/app/PhaseTitle";
 import Modal from "@/components/modal";
+import style from "./page.module.css"
+import Image from "next/image";
+import searchSvg from '../../../../public/search.svg'
+import {Transition} from "@headlessui/react";
 
 export default function SeedSearcher() {
-    const [isOpenCheckboxOverray, setOpenCheckboxOverray] = useState(false);
-    const handleOverlay = (onOff?: unknown): undefined => {
-        if (typeof onOff !== "boolean") {
-            setOpenCheckboxOverray(!isOpenCheckboxOverray)
-        } else if (onOff === true) {
-            setOpenCheckboxOverray(true)
-        } else {
-            setOpenCheckboxOverray(false)
+  const [isOpenCheckboxOverray, setOpenCheckboxOverray] = useState(false);
+  const handleOverlay = (onOff?: unknown): undefined => {
+    if (typeof onOff !== "boolean") {
+      setOpenCheckboxOverray(!isOpenCheckboxOverray)
+    } else if (onOff === true) {
+      setOpenCheckboxOverray(true)
+    } else {
+      setOpenCheckboxOverray(false)
+    }
+  }
+  const [isLoading, setIsLoading] = useState(false);
+  const [lockOption, setLockOption] = useState<LockOption>(lockOptions);
+  const renderedItems: React.ReactElement[] = []
+  const handleCheckboxChange = (key: string) => {
+    setLockOption((prevState) => {
+      // 새로운 객체로 복사하여 불변성을 유지함
+      const newItem = {
+        ...prevState[key],
+        selected: !prevState[key].selected
+      };
+      return {
+        ...prevState,
+        [key]: newItem,
+      };
+    });
+  };
+
+  Object.values(lockOption).forEach((item, index) => {
+    renderedItems.push(
+        <li key={index}>
+          <input className='input' type='checkbox' value={item.name}
+                 checked={item.selected}
+                 onChange={() => handleCheckboxChange(item.name)}/>{item.name}
+        </li>
+    );
+  });// Get references to elements
+
+  const handleUnlock = () => {
+    const newOption: LockOption = {}
+    Object.entries(lockOptions)
+        .map(([key, val]) => {
+          newOption[key] = {
+            name: val.name,
+            selected: true
+          }
+        })
+    saveLock(newOption)
+  }
+  const handleLock = () => {
+    const newOption: LockOption = {}
+    Object.entries(lockOptions)
+        .map(([key, val]) => {
+          newOption[key] = {
+            name: val.name,
+            selected: false
+          }
+        })
+    saveLock(newOption)
+  }
+
+  const saveLock = (newOptions: LockOption) => {
+    setLockOption(() => newOptions);
+    handleOverlay(false)
+  }
+
+  const [seedInput, setseedInput] = useState('ALEEB');
+
+  const handleSeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setseedInput(e.target.value);
+  };
+  const [deckSelect, setdeckSelect] = useState<typeof deckOption[number]>(deckOption[0]);
+  const [stakeSelect, setstakeSelect] = useState<typeof stakeOption[number]>(stakeOption[0]);
+  const [versionSelect, setversionSelect] = useState(versionOption[0].key);
+  const [outputBox, setoutputBox] = useState('');
+  const [anteInput, setAnte] = useState(39)
+  const [cardsPerAnteInput, setCardsPerAnte] = useState('50,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150');
+
+  const handleStakeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setstakeSelect(e.target.value as typeof stakeOption[number]);
+  }
+  const handleDeckSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setdeckSelect(e.target.value as typeof deckOption[number]);
+  }
+  const handleAnteInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAnte(e.target.value as unknown as number);
+  }
+  const handleCardsPerAnte = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCardsPerAnte(e.target.value);
+  }
+  const handleVersionSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setversionSelect(e.target.value as unknown as number);
+  }
+
+  function _performAnalysis() {
+    setIsLoading(true);
+    setTimeout(() => {
+      performAnalysis()
+    }, 100)
+    saveConfig()
+    refreshConfig()
+  }
+
+  type Config = {
+    [key: string]: {
+      deckSelect: typeof deckOption[number]
+      stakeSelect: typeof stakeOption[number]
+      versionSelect: number
+      anteInput: number
+      cardsPerAnteInput: string
+      lockOption: LockOption,
+      createdTime: number
+    }
+  }
+
+  function saveConfig() {
+    const configs = getConfigs();
+    configs[seedInput] = {
+      deckSelect,
+      stakeSelect,
+      versionSelect,
+      anteInput,
+      cardsPerAnteInput,
+      lockOption,
+      createdTime: new Date().getTime()
+    }
+    localStorage.setItem("configs", JSON.stringify(configs));
+  }
+
+  const [recentConfig, setRecentConfig] = useState<Config>({})
+
+  function refreshConfig() {
+    const config = getConfigs();
+    setRecentConfig(config)
+
+  }
+
+  function getConfigs() {
+    return (JSON.parse(localStorage.getItem('configs') ?? '{}')) as unknown as Config
+  }
+
+  useEffect(() => {
+    refreshConfig()
+  }, []);
+
+  function loadConfig(seed: string): undefined {
+    const loadedInput = recentConfig[seed]
+    const {
+      deckSelect,
+      stakeSelect,
+      versionSelect,
+      anteInput,
+      cardsPerAnteInput,
+      lockOption
+    } = loadedInput
+    setseedInput(seed)
+    setdeckSelect(deckSelect)
+    setstakeSelect(stakeSelect)
+    setversionSelect(versionSelect)
+    setAnte(anteInput)
+    setCardsPerAnte(cardsPerAnteInput)
+    setLockOption(lockOption)
+  }
+
+  function performAnalysis() {
+    setIsLoading(true);
+    // Get input values
+    const ante = anteInput;
+    const cardsPerAnte = cardsPerAnteInput.split(',').map(Number);
+    const deck = deckSelect;
+    const stake = stakeSelect;
+    const version = versionSelect;
+    const seed = seedInput.toUpperCase().replace(/0/g, 'O');
+
+    let output = "";
+
+    // It's analysis time!
+    // @ts-expect-error Emscripten error possible
+    const inst = new Immolate.Instance(seed);
+    // @ts-expect-error Emscripten error possible
+    inst.params = new Immolate.InstParams(deck, stake, false, version);
+    inst.initLocks(1, false, false);
+    inst.lock("Overstock Plus");
+    inst.lock("Liquidation");
+    inst.lock("Glow Up");
+    inst.lock("Reroll Glut");
+    inst.lock("Omen Globe");
+    inst.lock("Observatory");
+    inst.lock("Nacho Tong");
+    inst.lock("Recyclomancy");
+    inst.lock("Tarot Tycoon");
+    inst.lock("Planet Tycoon");
+    inst.lock("Money Tree");
+    inst.lock("Antimatter");
+    inst.lock("Illusion");
+    inst.lock("Petroglyph");
+    inst.lock("Retcon");
+    inst.lock("Palette");
+    for (const key in lockOption) {
+      if (!lockOption[key].selected) inst.lock(key)
+    }
+    inst.setStake(stake);
+    inst.setDeck(deck);
+    // let ghostDeck = (deck == "Ghost Deck");
+    for (let a = 1; a <= ante; a++) {
+      inst.initUnlocks(a, false);
+      output += "==ANTE " + a + "==\n"
+      output += "Boss: " + inst.nextBoss(a) + "\n";
+      const voucher = inst.nextVoucher(a);
+      output += "Voucher: " + voucher + "\n";
+      inst.lock(voucher);
+      // Unlock next level voucher
+      for (let i = 0; i < Immolate.VOUCHERS.size(); i += 2) {
+        if (Immolate.VOUCHERS.get(i) == voucher) {
+          // Only unlock it if it's unlockable
+          if (lockOption[Immolate.VOUCHERS.get(i + 1)]) {
+            inst.unlock(Immolate.VOUCHERS.get(i + 1));
+          }
         }
-    }
-    const [isLoading, setIsLoading] = useState(false);
-    const [lockOption, setLockOption] = useState<LockOption>(lockOptions);
-    const renderedItems: React.ReactElement[] = []
-    const handleCheckboxChange = (key: string) => {
-        setLockOption((prevState) => {
-            // 새로운 객체로 복사하여 불변성을 유지함
-            const newItem = {
-                ...prevState[key],
-                selected: !prevState[key].selected
-            };
-            return {
-                ...prevState,
-                [key]: newItem,
-            };
-        });
-    };
+      }
+      output += "Tags: " + inst.nextTag(a) + ", " + inst.nextTag(a) + "\n";
 
-    Object.values(lockOption).forEach((item, index) => {
-        renderedItems.push(
-            <li key={index}>
-                <input className='input' type='checkbox' value={item.name}
-                       checked={item.selected}
-                       onChange={() => handleCheckboxChange(item.name)}/>{item.name}
-            </li>
-        );
-    });// Get references to elements
-
-    const handleUnlock = () => {
-        const newOption: LockOption = {}
-        Object.entries(lockOptions)
-            .map(([key, val]) => {
-                newOption[key] = {
-                    name: val.name,
-                    selected: true
-                }
-            })
-        saveLock(newOption)
-    }
-    const handleLock = () => {
-        const newOption: LockOption = {}
-        Object.entries(lockOptions)
-            .map(([key, val]) => {
-                newOption[key] = {
-                    name: val.name,
-                    selected: false
-                }
-            })
-        saveLock(newOption)
-    }
-
-    const saveLock = (newOptions: LockOption) => {
-        setLockOption(() => newOptions);
-        handleOverlay(false)
-    }
-
-    const [seedInput, setseedInput] = useState('ALEEB');
-
-    const handleSeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setseedInput(e.target.value);
-    };
-    const [deckSelect, setdeckSelect] = useState<typeof deckOption[number]>(deckOption[0]);
-    const [stakeSelect, setstakeSelect] = useState<typeof stakeOption[number]>(stakeOption[0]);
-    const [versionSelect, setversionSelect] = useState(versionOption[0].key);
-    const [outputBox, setoutputBox] = useState('');
-    const [anteInput, setAnte] = useState(39)
-    const [cardsPerAnteInput, setCardsPerAnte] = useState('50,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150');
-
-    const handleStakeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setstakeSelect(e.target.value as typeof stakeOption[number]);
-    }
-    const handleDeckSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setdeckSelect(e.target.value as typeof deckOption[number]);
-    }
-    const handleAnteInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setAnte(e.target.value as unknown as number);
-    }
-    const handleCardsPerAnte = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCardsPerAnte(e.target.value);
-    }
-    const handleVersionSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setversionSelect(e.target.value as unknown as number);
-    }
-
-    function _performAnalysis() {
-        setIsLoading(true);
-        setTimeout(() => {
-            performAnalysis()
-        }, 100)
-        saveConfig()
-        refreshConfig()
-    }
-
-    type Config = {
-        [key: string]: {
-            deckSelect: typeof deckOption[number]
-            stakeSelect: typeof stakeOption[number]
-            versionSelect: number
-            anteInput: number
-            cardsPerAnteInput: string
-            lockOption: LockOption,
-            createdTime: number
+      output += "Shop Queue: \n";
+      for (let q = 1; q <= cardsPerAnte[a - 1]; q++) {
+        output += q + ") ";
+        const item = inst.nextShopItem(a);
+        if (item.type == "Joker") {
+          if (item.jokerData.stickers.eternal) output += "Eternal ";
+          if (item.jokerData.stickers.perishable) output += "Perishable ";
+          if (item.jokerData.stickers.rental) output += "Rental ";
+          if (item.jokerData.edition != "No Edition") output += item.jokerData.edition + " ";
         }
-    }
+        output += item.item + "\n";
+        item.delete();
+      }
 
-    function saveConfig() {
-        const configs = getConfigs();
-        configs[seedInput] = {
-            deckSelect,
-            stakeSelect,
-            versionSelect,
-            anteInput,
-            cardsPerAnteInput,
-            lockOption,
-            createdTime: new Date().getTime()
+      output += "\nPacks: \n";
+      const numPacks = (a == 1) ? 4 : 6;
+      for (let p = 1; p <= numPacks; p++) {
+        const pack = inst.nextPack(a);
+        output += pack + " - ";
+        const packInfo = Immolate.packInfo(pack);
+        if (packInfo.type == "Celestial Pack") {
+          const cards = inst.nextCelestialPack(packInfo.size, a);
+          for (let c = 0; c < packInfo.size; c++) {
+            output += cards.get(c);
+            output += (c + 1 != packInfo.size) ? ", " : "";
+          }
+          cards.delete();
         }
-        localStorage.setItem("configs", JSON.stringify(configs));
-    }
-
-    const [recentConfig, setRecentConfig] = useState<Config>({})
-
-    function refreshConfig() {
-        const config = getConfigs();
-        setRecentConfig(config)
-
-    }
-
-    function getConfigs() {
-        return (JSON.parse(localStorage.getItem('configs') ?? '{}')) as unknown as Config
-    }
-
-    useEffect(() => {
-        refreshConfig()
-    }, []);
-
-    function loadConfig(seed: string): undefined {
-        const loadedInput = recentConfig[seed]
-        const {
-            deckSelect,
-            stakeSelect,
-            versionSelect,
-            anteInput,
-            cardsPerAnteInput,
-            lockOption
-        } = loadedInput
-        setseedInput(seed)
-        setdeckSelect(deckSelect)
-        setstakeSelect(stakeSelect)
-        setversionSelect(versionSelect)
-        setAnte(anteInput)
-        setCardsPerAnte(cardsPerAnteInput)
-        setLockOption(lockOption)
-    }
-
-    function performAnalysis() {
-        setIsLoading(true);
-        // Get input values
-        const ante = anteInput;
-        const cardsPerAnte = cardsPerAnteInput.split(',').map(Number);
-        const deck = deckSelect;
-        const stake = stakeSelect;
-        const version = versionSelect;
-        const seed = seedInput.toUpperCase().replace(/0/g, 'O');
-
-        let output = "";
-
-        // It's analysis time!
-        // @ts-expect-error Emscripten error possible
-        const inst = new Immolate.Instance(seed);
-        // @ts-expect-error Emscripten error possible
-        inst.params = new Immolate.InstParams(deck, stake, false, version);
-        inst.initLocks(1, false, false);
-        inst.lock("Overstock Plus");
-        inst.lock("Liquidation");
-        inst.lock("Glow Up");
-        inst.lock("Reroll Glut");
-        inst.lock("Omen Globe");
-        inst.lock("Observatory");
-        inst.lock("Nacho Tong");
-        inst.lock("Recyclomancy");
-        inst.lock("Tarot Tycoon");
-        inst.lock("Planet Tycoon");
-        inst.lock("Money Tree");
-        inst.lock("Antimatter");
-        inst.lock("Illusion");
-        inst.lock("Petroglyph");
-        inst.lock("Retcon");
-        inst.lock("Palette");
-        for (const key in lockOption) {
-            if (!lockOption[key].selected) inst.lock(key)
+        if (packInfo.type == "Arcana Pack") {
+          const cards = inst.nextArcanaPack(packInfo.size, a);
+          for (let c = 0; c < packInfo.size; c++) {
+            output += cards.get(c);
+            output += (c + 1 != packInfo.size) ? ", " : "";
+          }
+          cards.delete();
         }
-        inst.setStake(stake);
-        inst.setDeck(deck);
-        // let ghostDeck = (deck == "Ghost Deck");
-        for (let a = 1; a <= ante; a++) {
-            inst.initUnlocks(a, false);
-            output += "==ANTE " + a + "==\n"
-            output += "Boss: " + inst.nextBoss(a) + "\n";
-            const voucher = inst.nextVoucher(a);
-            output += "Voucher: " + voucher + "\n";
-            inst.lock(voucher);
-            // Unlock next level voucher
-            for (let i = 0; i < Immolate.VOUCHERS.size(); i += 2) {
-                if (Immolate.VOUCHERS.get(i) == voucher) {
-                    // Only unlock it if it's unlockable
-                    if (lockOption[Immolate.VOUCHERS.get(i + 1)]) {
-                        inst.unlock(Immolate.VOUCHERS.get(i + 1));
-                    }
-                }
-            }
-            output += "Tags: " + inst.nextTag(a) + ", " + inst.nextTag(a) + "\n";
-
-            output += "Shop Queue: \n";
-            for (let q = 1; q <= cardsPerAnte[a - 1]; q++) {
-                output += q + ") ";
-                const item = inst.nextShopItem(a);
-                if (item.type == "Joker") {
-                    if (item.jokerData.stickers.eternal) output += "Eternal ";
-                    if (item.jokerData.stickers.perishable) output += "Perishable ";
-                    if (item.jokerData.stickers.rental) output += "Rental ";
-                    if (item.jokerData.edition != "No Edition") output += item.jokerData.edition + " ";
-                }
-                output += item.item + "\n";
-                item.delete();
-            }
-
-            output += "\nPacks: \n";
-            const numPacks = (a == 1) ? 4 : 6;
-            for (let p = 1; p <= numPacks; p++) {
-                const pack = inst.nextPack(a);
-                output += pack + " - ";
-                const packInfo = Immolate.packInfo(pack);
-                if (packInfo.type == "Celestial Pack") {
-                    const cards = inst.nextCelestialPack(packInfo.size, a);
-                    for (let c = 0; c < packInfo.size; c++) {
-                        output += cards.get(c);
-                        output += (c + 1 != packInfo.size) ? ", " : "";
-                    }
-                    cards.delete();
-                }
-                if (packInfo.type == "Arcana Pack") {
-                    const cards = inst.nextArcanaPack(packInfo.size, a);
-                    for (let c = 0; c < packInfo.size; c++) {
-                        output += cards.get(c);
-                        output += (c + 1 != packInfo.size) ? ", " : "";
-                    }
-                    cards.delete();
-                }
-                if (packInfo.type == "Spectral Pack") {
-                    const cards = inst.nextSpectralPack(packInfo.size, a);
-                    for (let c = 0; c < packInfo.size; c++) {
-                        output += cards.get(c);
-                        output += (c + 1 != packInfo.size) ? ", " : "";
-                    }
-                    cards.delete();
-                }
-                if (packInfo.type == "Buffoon Pack") {
-                    const cards = inst.nextBuffoonPack(packInfo.size, a);
-                    for (let c = 0; c < packInfo.size; c++) {
-                        const joker = cards.get(c);
-                        if (joker.stickers.eternal) output += "Eternal ";
-                        if (joker.stickers.perishable) output += "Perishable ";
-                        if (joker.stickers.rental) output += "Rental ";
-                        if (joker.edition != "No Edition") output += joker.edition + " ";
-                        output += joker.joker;
-                        joker.delete();
-                        output += (c + 1 != packInfo.size) ? ", " : "";
-                    }
-                    cards.delete();
-                }
-                if (packInfo.type == "Standard Pack") {
-                    const cards = inst.nextStandardPack(packInfo.size, a);
-                    for (let c = 0; c < packInfo.size; c++) {
-                        const card = cards.get(c);
-                        if (card.seal != "No Seal") output += card.seal + " ";
-                        if (card.edition != "No Edition") output += card.edition + " ";
-                        if (card.enhancement != "No Enhancement") output += card.enhancement + " ";
-                        const rank = card.base[2];
-                        if (rank == "T") output += "10";
-                        else if (rank == "J") output += "Jack";
-                        else if (rank == "Q") output += "Queen";
-                        else if (rank == "K") output += "King";
-                        else if (rank == "A") output += "Ace";
-                        else output += rank;
-                        output += " of ";
-                        const suit = card.base[0];
-                        if (suit == "C") output += "Clubs";
-                        else if (suit == "S") output += "Spades";
-                        else if (suit == "D") output += "Diamonds";
-                        else if (suit == "H") output += "Hearts";
-                        card.delete();
-                        output += (c + 1 != packInfo.size) ? ", " : "";
-                    }
-                    cards.delete();
-                }
-                output += "\n";
-            }
-
-            output += "\n";
+        if (packInfo.type == "Spectral Pack") {
+          const cards = inst.nextSpectralPack(packInfo.size, a);
+          for (let c = 0; c < packInfo.size; c++) {
+            output += cards.get(c);
+            output += (c + 1 != packInfo.size) ? ", " : "";
+          }
+          cards.delete();
         }
-
-        inst.delete();
-
-        // Update output box with analysis result
-        setoutputBox(() => output)
-        displayShopQueues(output);
-        setIsLoading(false);
-    }
-
-    type shopItem = {
-        title: string, queue: string[], boss: string, voucher: string, tags: string[], packs: string[]
-    }
-
-    // Function to extract shop queues from the textarea content
-    function extractShopQueues(text: string) {
-        const shopQueues: shopItem[] = [];
-        const regex = /==ANTE \d+==[\s\S]*?(?=(?:==ANTE \d+==|$))/g;
-        const matches = text.match(regex);
-
-        if (matches) {
-            matches.forEach(match => {
-                const titleMatch = match.match(/==ANTE \d+==/);
-                const title = titleMatch ? titleMatch[0] : 'Untitled';
-                const bossMatch = match.match(/Boss: (.+)/);
-                const voucherMatch = match.match(/Voucher: (.+)/);
-                const tagsMatch = match.match(/Tags: (.+)/);
-                const queueMatch = match.match(/Shop Queue:([\s\S]*?)(?=Packs:|$)/);
-                const packsMatch = match.match(/Packs:([\s\S]*?)(?=(?:==ANTE \d+==|$))/);
-
-                const boss = bossMatch ? bossMatch[1].trim() : '';
-                const voucher = voucherMatch ? voucherMatch[1].trim() : '';
-                const tags = tagsMatch ? tagsMatch[1].trim().split(',').map(tag => tag.trim()) : [];
-                const queue = queueMatch ? queueMatch[1].trim().split('\n').filter(item => item.trim() !== '') : [];
-                const packs = packsMatch ? packsMatch[1].trim().split('\n').filter(item => item.trim() !== '') : [];
-
-                shopQueues.push({title, queue, boss, voucher, tags, packs});
-            });
+        if (packInfo.type == "Buffoon Pack") {
+          const cards = inst.nextBuffoonPack(packInfo.size, a);
+          for (let c = 0; c < packInfo.size; c++) {
+            const joker = cards.get(c);
+            if (joker.stickers.eternal) output += "Eternal ";
+            if (joker.stickers.perishable) output += "Perishable ";
+            if (joker.stickers.rental) output += "Rental ";
+            if (joker.edition != "No Edition") output += joker.edition + " ";
+            output += joker.joker;
+            joker.delete();
+            output += (c + 1 != packInfo.size) ? ", " : "";
+          }
+          cards.delete();
         }
+        if (packInfo.type == "Standard Pack") {
+          const cards = inst.nextStandardPack(packInfo.size, a);
+          for (let c = 0; c < packInfo.size; c++) {
+            const card = cards.get(c);
+            if (card.seal != "No Seal") output += card.seal + " ";
+            if (card.edition != "No Edition") output += card.edition + " ";
+            if (card.enhancement != "No Enhancement") output += card.enhancement + " ";
+            const rank = card.base[2];
+            if (rank == "T") output += "10";
+            else if (rank == "J") output += "Jack";
+            else if (rank == "Q") output += "Queen";
+            else if (rank == "K") output += "King";
+            else if (rank == "A") output += "Ace";
+            else output += rank;
+            output += " of ";
+            const suit = card.base[0];
+            if (suit == "C") output += "Clubs";
+            else if (suit == "S") output += "Spades";
+            else if (suit == "D") output += "Diamonds";
+            else if (suit == "H") output += "Hearts";
+            card.delete();
+            output += (c + 1 != packInfo.size) ? ", " : "";
+          }
+          cards.delete();
+        }
+        output += "\n";
+      }
 
-        return shopQueues;
+      output += "\n";
     }
 
-    // Function to separate card names, modifiers, and stickers
+    inst.delete();
+
+    // Update output box with analysis result
+    setoutputBox(() => output)
+    displayShopQueues(output);
+    setIsLoading(false);
+  }
+
+  type shopItem = {
+    title: string, queue: string[], boss: string, voucher: string, tags: string[], packs: string[]
+  }
+
+  // Function to extract shop queues from the textarea content
+  function extractShopQueues(text: string) {
+    const shopQueues: shopItem[] = [];
+    const regex = /==ANTE \d+==[\s\S]*?(?=(?:==ANTE \d+==|$))/g;
+    const matches = text.match(regex);
+
+    if (matches) {
+      matches.forEach(match => {
+        const titleMatch = match.match(/==ANTE \d+==/);
+        const title = titleMatch ? titleMatch[0] : 'Untitled';
+        const bossMatch = match.match(/Boss: (.+)/);
+        const voucherMatch = match.match(/Voucher: (.+)/);
+        const tagsMatch = match.match(/Tags: (.+)/);
+        const queueMatch = match.match(/Shop Queue:([\s\S]*?)(?=Packs:|$)/);
+        const packsMatch = match.match(/Packs:([\s\S]*?)(?=(?:==ANTE \d+==|$))/);
+
+        const boss = bossMatch ? bossMatch[1].trim() : '';
+        const voucher = voucherMatch ? voucherMatch[1].trim() : '';
+        const tags = tagsMatch ? tagsMatch[1].trim().split(',').map(tag => tag.trim()) : [];
+        const queue = queueMatch ? queueMatch[1].trim().split('\n').filter(item => item.trim() !== '') : [];
+        const packs = packsMatch ? packsMatch[1].trim().split('\n').filter(item => item.trim() !== '') : [];
+
+        shopQueues.push({title, queue, boss, voucher, tags, packs});
+      });
+    }
+
+    return shopQueues;
+  }
+
+  // Function to separate card names, modifiers, and stickers
 
 
-    const [displayElement, setDisplayElement] = useState<JSX.Element[]>()
+  const [displayElement, setDisplayElement] = useState<JSX.Element[]>()
 
 
-    // Function to create and display the side-scrolling list
-    function displayShopQueues(ouput: string) {
-        const shopQueues = extractShopQueues(ouput);
-        const shopQueueDisplay: JSX.Element[] = shopQueues.map(({title, queue, boss, voucher, tags, packs}, index) => {
-            return <div className='card bg-base-300 my-2' key={index}>
-                <div className={'card-body'}>
-                    <div className='card-title font-semibold text-accent'>{title}</div>
-                    <div className='queueInfo card-actions'>
-                        <div>
-                            <PhaseTitle>Voucher</PhaseTitle>
-                            {
-                                voucher && (
-                                    <div className='voucherContainer'>
-                                        <Voucher voucherName={voucher}/>
-                                    </div>
-                                )
-                            }
-                        </div>
-                        <div className='bossElement'>
-                            <PhaseTitle>Boss</PhaseTitle>
-                            {
-                                boss && <div className='bossContainer'>
-                                    <Boss bossName={boss}></Boss>
-                                </div>
-                            }
-                        </div>
-                        <div>
-                            <PhaseTitle>Tags</PhaseTitle>
-                            <div className={'flex max-w-dvw overflow-x-auto'}>                            {
-                                tags.map((tag, index) =>
-                                    <Tag tagName={tag} key={index}/>
-                                )
-                            }
-                            </div>
-                        </div>
-                    </div>
-                    <div className={'flex max-w-dvw overflow-x-auto'}>
-                        {
-                            queue.map((item, index) => {
-                                return (
-                                    <div className={'queueItem'} key={index}>
-                                        <Card itemName={item} key={index}/>
-                                    </div>
-                                )
-                            })
-                        }
-                    </div>
-                    {
-                        packs.length > 0 &&
-                        <>
-                            <div className='queueTitle'>
-                                ==Packs==
-                            </div>
-                            <div className='packsContainer'>
-                                {
-                                    packs.map((pack, index) => {
-                                        const packItems = pack.split(' - ');
-                                        const packName = packItems[0];
-                                        const packCards = packItems[1] ? packItems[1].split(', ') : [];
-                                        return <div className={'packName'} key={index}>{packName + ': '}
-                                            <div className={'flex max-w-dvw overflow-x-auto'}>
-                                                {
-                                                    packCards.map((cardName, index) =>
-                                                        <Card itemName={cardName} key={`${cardName}${index}`}/>
-                                                    )
-                                                }
-                                            </div>
-                                        </div>
-                                    })
-                                }
-                            </div>
-                        </>
-                    }
-                </div>
+  // Function to create and display the side-scrolling list
+  function displayShopQueues(ouput: string) {
+    const shopQueues = extractShopQueues(ouput);
+    const shopQueueDisplay: JSX.Element[] = shopQueues.map(({title, queue, boss, voucher, tags, packs}, index) => {
+      return <div className='card bg-base-300 my-2' key={index}>
+        <div className={'card-body'}>
+          <div className='card-title font-semibold text-accent'>{title}</div>
+          <div className='queueInfo card-actions'>
+            <div>
+              <PhaseTitle>Voucher</PhaseTitle>
+              {
+                  voucher && (
+                      <div className='voucherContainer'>
+                        <Voucher voucherName={voucher}/>
+                      </div>
+                  )
+              }
             </div>
-        });
-        setDisplayElement(() => shopQueueDisplay)
-
-        // Add draggable scrolling functionality
-
-    }
-
-    const [searchInput, setSearchInput] = useState('');
-    const [searchOuput, setSearchOuput] = useState<ReactNode>([]);
-
-    function searchCard(): undefined {
-        const tempOutput: React.ReactNode[] = [];
-        setSearchOuput([])
-
-        const shopItems = extractShopQueues(outputBox);
-        for (let i1 = 0; i1 < shopItems.length; i1++) {
-            const item = shopItems[i1];
-            for (let i = 0; i < item.packs.length; i++) {
-                const pack = item.packs[i];
-                if (pack.includes(searchInput)) {
-                    tempOutput.push(<li key={`${i1}pack${i}`}>{item.title} {pack}</li>)
-                }
+            <div className='bossElement'>
+              <PhaseTitle>Boss</PhaseTitle>
+              {
+                  boss && <div className='bossContainer'>
+                      <Boss bossName={boss}></Boss>
+                  </div>
+              }
+            </div>
+            <div>
+              <PhaseTitle>Tags</PhaseTitle>
+              <div className={'flex max-w-dvw overflow-x-auto'}>                            {
+                tags.map((tag, index) =>
+                    <Tag tagName={tag} key={index}/>
+                )
+              }
+              </div>
+            </div>
+          </div>
+          <div className={'flex max-w-dvw overflow-x-auto'}>
+            {
+              queue.map((item, index) => {
+                return (
+                    <div className={'queueItem'} key={index}>
+                      <Card itemName={item} key={index}/>
+                    </div>
+                )
+              })
             }
-            for (let i = 0; i < item.queue.length; i++) {
-                const queue = item.queue[i];
-                if (queue.includes(searchInput)) {
-                    tempOutput.push(<li key={`${i1}item${i}`}>{item.title} {queue}</li>)
-                }
-            }
+          </div>
+          {
+              packs.length > 0 &&
+              <>
+                  <div className='queueTitle'>
+                      ==Packs==
+                  </div>
+                  <div className='packsContainer'>
+                    {
+                      packs.map((pack, index) => {
+                        const packItems = pack.split(' - ');
+                        const packName = packItems[0];
+                        const packCards = packItems[1] ? packItems[1].split(', ') : [];
+                        return <div className={'packName'} key={index}>{packName + ': '}
+                          <div className={'flex max-w-dvw overflow-x-auto'}>
+                            {
+                              packCards.map((cardName, index) =>
+                                  <Card itemName={cardName} key={`${cardName}${index}`}/>
+                              )
+                            }
+                          </div>
+                        </div>
+                      })
+                    }
+                  </div>
+              </>
+          }
+        </div>
+      </div>
+    });
+    setDisplayElement(() => shopQueueDisplay)
+
+    // Add draggable scrolling functionality
+
+  }
+
+  const [searchInput, setSearchInput] = useState('');
+  const [searchOuput, setSearchOuput] = useState<ReactNode>([]);
+
+  function searchCard(): undefined {
+    const tempOutput: React.ReactNode[] = [];
+    setSearchOuput([])
+
+    const shopItems = extractShopQueues(outputBox);
+    for (let i1 = 0; i1 < shopItems.length; i1++) {
+      const item = shopItems[i1];
+      for (let i = 0; i < item.packs.length; i++) {
+        const pack = item.packs[i];
+        if (pack.includes(searchInput)) {
+          tempOutput.push(<li key={`${i1}pack${i}`}>{item.title} {pack}</li>)
         }
-        setSearchOuput(tempOutput)
+      }
+      for (let i = 0; i < item.queue.length; i++) {
+        const queue = item.queue[i];
+        if (queue.includes(searchInput)) {
+          tempOutput.push(<li key={`${i1}item${i}`}>{item.title} {queue}</li>)
+        }
+      }
     }
+    setSearchOuput(tempOutput)
+  }
 
-    function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setSearchInput(e.target.value);
-    }
+  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setSearchInput(e.target.value);
+  }
 
-    async function copySeed(): Promise<undefined> {
-        await navigator.clipboard.writeText(seedInput);
-        alert("Copied!");
-    }
+  async function copySeed(): Promise<undefined> {
+    await navigator.clipboard.writeText(seedInput);
+    alert("Copied!");
+  }
 
-    return (<>
-            <Script src="/immolate.js" strategy="lazyOnload"/>
-            <Script id="module-init" strategy="lazyOnload">
-                {`
+  const [isShowSearchModal, setShowSearchModal] = useState(false)
+
+  function handleShowSearchModal() {
+    setShowSearchModal(!isShowSearchModal)
+  }
+
+  return (<>
+        <Script src="/immolate.js" strategy="lazyOnload"/>
+        <Script id="module-init" strategy="lazyOnload">
+          {`
                     console.log('wasm loaded')
                     let instantAnalysis = false;
                     let Immolate = {
@@ -508,126 +518,138 @@ export default function SeedSearcher() {
                       return vectorInt;
                     }
                 `}
-            </Script>
-            <div className="grid grid-cols-1 md:grid-cols-2  gap-2">
-                {/*recent config*/}
-                <div className='card bg-base-300 p-3 md:col-span-2'>
-                    <h1 className='text-accent font-semibold'>Recent</h1>
-                    <ul className={'flex overflow-x-auto'}>
-                        {Object.entries(recentConfig)
-                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                            .sort(([key, val], [key2, val2]) =>
-                                val2.createdTime - val.createdTime)
-                            .map(([key], index) =>
-                                <li key={index} className={'mx-2 clickable'}
-                                    onClick={loadConfig.bind(null, key)}>{key}</li>)}
+        </Script>
+        <div className="grid grid-cols-1 md:grid-cols-2  gap-2">
+          {/*recent config*/}
+          <div className='card bg-base-300 p-3 md:col-span-2'>
+            <h1 className='text-accent font-semibold'>Recent</h1>
+            <ul className={'flex overflow-x-auto'}>
+              {Object.entries(recentConfig)
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                  .sort(([key, val], [key2, val2]) =>
+                      val2.createdTime - val.createdTime)
+                  .map(([key], index) =>
+                      <li key={index} className={'mx-2 clickable'}
+                          onClick={loadConfig.bind(null, key)}>{key}</li>)}
+            </ul>
+          </div>
+          {/*setting*/}
+          <div className="card bg-base-300 p-3">
+            <h1 className='text-accent font-semibold'>Settings</h1>
+            <label className='label' htmlFor="seed">Seed</label>
+            <div className={'join'}>
+              <input className='input join-item' type="text" maxLength={8} pattern="[A-Z1-9]{1,8}" required
+                     value={seedInput}
+                     onChange={handleSeedChange}/>
+              <button className={'btn btn-secondary join-item'} onClick={copySeed}>Copy</button>
+            </div>
+            <br/>
+            <label className='label' htmlFor="ante">Max Ante:</label>
+            <input className='input' type="number" value={anteInput} onChange={handleAnteInput} min="1"
+                   max="999" required/>
+            <br/>
+            <label className='label' htmlFor="cardsPerAnte">Cards per Ante:</label>
+            <input className='input' type="text" id="cardsPerAnte"
+                   value={cardsPerAnteInput}
+                   onChange={handleCardsPerAnte}
+                   required/>
+            <br/>
+            <label className='label' htmlFor="deck">Deck:</label>
+            <select className='select' required onChange={handleDeckSelect}
+                    value={deckSelect}>
+              {
+                deckOption.map((option) =>
+                    <option key={option} value={option}>{option}</option>
+                )
+              }
+            </select>
+            <br/>
+            <label className='label' htmlFor="stake">Stake:</label>
+            <select className='select' value={stakeSelect} required onChange={handleStakeSelect}>
+              {
+                stakeOption.map((option, index) =>
+                    <option key={index} value={option}>{option}</option>
+                )
+              }
+            </select>
+            <br/>
+            <label className='label' htmlFor="version">Version:</label>
+            <select className='select' id="version" required
+                    value={versionSelect}
+                    onChange={handleVersionSelect}>
+              {
+                versionOption.map((option) =>
+                    <option key={option.key} value={option.key}>{option.name}</option>
+                )
+              }
+            </select>
+            <br/>
+            <button className='btn btn-primary btn-outline' onClick={handleOverlay}>Modify Unlocks</button>
+            {isOpenCheckboxOverray && <div>
+                <div className='flex'>
+                    <button className='btn btn-secondary grow m-1' onClick={handleUnlock}>Unlock All</button>
+                    <button className='btn btn-secondary grow m-1' onClick={handleLock}>Lock All</button>
+                </div>
+                <div id="checkboxesPopup">
+                    <h2>Unlocked Items</h2>
+                    <ul className='list-group'>
+                      {/*{renderedItems}*/}
+                      {Object.entries(lockOption).map(([key, data]) => (
+                          <li key={key}>
+                            <input className='checkbox'
+                                   type="checkbox"
+                                   id={key}
+                                   checked={lockOption[key].selected}
+                                   onChange={() => handleCheckboxChange(key)}
+                            />
+                            {/* JSX에서는 label의 for 속성이 아니라 htmlFor를 사용해야 함 */}
+                            <label className='label' htmlFor={key}>{data.name}</label>
+                          </li>
+                      ))}
                     </ul>
                 </div>
-                {/*setting*/}
-                <div className="card bg-base-300 p-3">
-                    <h1 className='text-accent font-semibold'>Settings</h1>
-                    <label className='label' htmlFor="seed">Seed</label>
-                    <div className={'join'}>
-                        <input className='input join-item' type="text" maxLength={8} pattern="[A-Z1-9]{1,8}" required
-                               value={seedInput}
-                               onChange={handleSeedChange}/>
-                        <button className={'btn btn-secondary join-item'} onClick={copySeed}>Copy</button>
-                    </div>
-                    <br/>
-                    <label className='label' htmlFor="ante">Max Ante:</label>
-                    <input className='input' type="number" value={anteInput} onChange={handleAnteInput} min="1"
-                           max="999" required/>
-                    <br/>
-                    <label className='label' htmlFor="cardsPerAnte">Cards per Ante:</label>
-                    <input className='input' type="text" id="cardsPerAnte"
-                           value={cardsPerAnteInput}
-                           onChange={handleCardsPerAnte}
-                           required/>
-                    <br/>
-                    <label className='label' htmlFor="deck">Deck:</label>
-                    <select className='select' required onChange={handleDeckSelect}
-                            value={deckSelect}>
-                        {
-                            deckOption.map((option) =>
-                                <option key={option} value={option}>{option}</option>
-                            )
-                        }
-                    </select>
-                    <br/>
-                    <label className='label' htmlFor="stake">Stake:</label>
-                    <select className='select' value={stakeSelect} required onChange={handleStakeSelect}>
-                        {
-                            stakeOption.map((option, index) =>
-                                <option key={index} value={option}>{option}</option>
-                            )
-                        }
-                    </select>
-                    <br/>
-                    <label className='label' htmlFor="version">Version:</label>
-                    <select className='select' id="version" required
-                            value={versionSelect}
-                            onChange={handleVersionSelect}>
-                        {
-                            versionOption.map((option) =>
-                                <option key={option.key} value={option.key}>{option.name}</option>
-                            )
-                        }
-                    </select>
-                    <br/>
-                    <button className='btn btn-primary btn-outline' onClick={handleOverlay}>Modify Unlocks</button>
-                    {isOpenCheckboxOverray && <div>
-                        <div className='flex'>
-                            <button className='btn btn-secondary grow m-1' onClick={handleUnlock}>Unlock All</button>
-                            <button className='btn btn-secondary grow m-1' onClick={handleLock}>Lock All</button>
-                        </div>
-                        <div id="checkboxesPopup">
-                            <h2>Unlocked Items</h2>
-                            <ul className='list-group'>
-                                {/*{renderedItems}*/}
-                                {Object.entries(lockOption).map(([key, data]) => (
-                                    <li key={key}>
-                                        <input className='checkbox'
-                                               type="checkbox"
-                                               id={key}
-                                               checked={lockOption[key].selected}
-                                               onChange={() => handleCheckboxChange(key)}
-                                        />
-                                        {/* JSX에서는 label의 for 속성이 아니라 htmlFor를 사용해야 함 */}
-                                        <label className='label' htmlFor={key}>{data.name}</label>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>}
-                    <br/>
-                    <button onClick={_performAnalysis} className={'btn btn-primary'}>Analyze</button>
-                </div>
-                {/*analyze result*/}
-                <div className="card bg-base-300 p-3">
-                    <h1 className='text-accent font-semibold'>Output</h1>
-                    <textarea value={outputBox} rows={16} readOnly
-                              className='textarea w-full h-full whitespace-pre-wrap'></textarea>
-                </div>
-                {/*search*/}
-                <div className="card bg-base-300 p-3 md:col-span-2">
-                    <div className={'join flex justify-center'}>
-                        <input className={'input join-item'} type='text' value={searchInput}
-                               onChange={handleSearchChange} minLength={4} placeholder='Search Card or Pack'/>
-                        <button className={'btn btn-accent join-item'} onClick={searchCard}>Search</button>
-                    </div>
-                    <div>
-                        <h2>Search Result</h2>
-                        <ul>
+            </div>}
+            <br/>
+            <button onClick={_performAnalysis} className={'btn btn-primary'}>Analyze</button>
+          </div>
+          {/*analyze result*/}
+          <div className="card bg-base-300 p-3">
+            <h1 className='text-accent font-semibold'>Output</h1>
+            <textarea value={outputBox} rows={16} readOnly
+                      className='textarea w-full h-full whitespace-pre-wrap'></textarea>
+          </div>
+          {/*visual result*/}
+          <div className="display-container md:col-span-2">
+            {displayElement}
+          </div>
+          {/*search badge*/}
+          <div className={`${style.searchBadge} badge badge-accent`}
+               onClick={handleShowSearchModal}>
+            <Image src={searchSvg} alt={'search...'}/>
+          </div>
+          {<Transition show={isShowSearchModal}>
+                  <div
+                      className={`${style.searchModal} card bg-neutral p-3 md:col-span-2 
+                      transition duration-300 ease-in data-[closed]:w-0`}>
+                      <div className={'join flex justify-center'}>
+                          <input className={'input join-item'} type='text' value={searchInput}
+                                 onChange={handleSearchChange} minLength={4} placeholder='Search Card or Pack'/>
+                          <button className={'btn btn-accent join-item'} onClick={searchCard}>Search</button>
+                      </div>
+                      <div className={'h-full'}>
+                          <h2 className={'text-neutral-content'}>Search Result</h2>
+                          <ul className={`text-neutral-content ${style.searchResult} h-full`}>
                             {searchOuput}
-                        </ul>
-                    </div>
-                </div>
-                {/*visual result*/}
-                <div className="display-container md:col-span-2">
-                    {displayElement}
-                </div>
-            </div>
-            {isLoading && <Modal>Analyzing...</Modal>}
-        </>
-    )
+                          </ul>
+                      </div>
+                      <div className={'flex justify-end w-full'}>
+                          <button className={'btn btn-neutral-content'} onClick={handleShowSearchModal}>Close</button>
+                      </div>
+                  </div>
+              </Transition>
+          }
+        </div>
+        {isLoading && <Modal>Analyzing...</Modal>}
+      </>
+  )
 }

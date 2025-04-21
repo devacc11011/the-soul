@@ -1,0 +1,24 @@
+.searchBadge {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+}
+.searchModal{
+    position: fixed;
+    margin: 1.5rem;
+    bottom: 0;
+    right: 0;
+    width: 80lvw;
+    height: 80lvh;
+    display: grid;
+    grid-template-rows: 40px 1fr 45px;
+}
+@media (min-width: 48rem) {
+    .searchModal{
+        width: 50%;
+        height: 50%;
+    }
+}
+.searchResult{
+    overflow: scroll;
+}
