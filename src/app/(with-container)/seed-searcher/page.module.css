@@ -5,20 +5,20 @@
 }
 .searchModal{
     position: fixed;
-    margin: 1.5rem;
-    bottom: 0;
-    right: 0;
-    width: 80lvw;
-    height: 80lvh;
+    padding: 2rem;
+    inset: 1.5rem;
     display: grid;
     grid-template-rows: 40px 1fr 45px;
 }
 @media (min-width: 48rem) {
     .searchModal{
+        bottom: 1.5rem;
+        right: 1.5rem;
+        top: auto;
+        left: auto;
         width: 50%;
         height: 50%;
     }
 }
 .searchResult{
-    overflow: scroll;
 }

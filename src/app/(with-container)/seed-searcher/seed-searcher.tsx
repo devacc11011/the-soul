@@ -629,21 +629,21 @@ export default function SeedSearcher() {
           </div>
           {<Transition show={isShowSearchModal}>
                   <div
-                      className={`${style.searchModal} card bg-neutral p-3 md:col-span-2 
-                      transition duration-300 ease-in data-[closed]:w-0`}>
+                      className={`${style.searchModal} p-3 md:col-span-2 card bg-neutral   
+                      transition duration-300 ease-in data-[closed]:opacity-0`}>
                       <div className={'join flex justify-center'}>
-                          <input className={'input join-item'} type='text' value={searchInput}
-                                 onChange={handleSearchChange} minLength={4} placeholder='Search Card or Pack'/>
-                          <button className={'btn btn-accent join-item'} onClick={searchCard}>Search</button>
+                        <input className={'input join-item'} type='text' value={searchInput}
+                               onChange={handleSearchChange} minLength={4} placeholder='Search Card or Pack'/>
+                        <button className={'btn btn-accent join-item'} onClick={searchCard}>Search</button>
                       </div>
-                      <div className={'h-full'}>
-                          <h2 className={'text-neutral-content'}>Search Result</h2>
-                          <ul className={`text-neutral-content ${style.searchResult} h-full`}>
-                            {searchOuput}
-                          </ul>
+                      <div className={'overflow-auto'}>
+                        <h2 className={'text-accent text-lg'}>Search Result</h2>
+                        <ul className={`text-neutral-content ${style.searchResult} h-full`}>
+                          {searchOuput}
+                        </ul>
                       </div>
                       <div className={'flex justify-end w-full'}>
-                          <button className={'btn btn-neutral-content'} onClick={handleShowSearchModal}>Close</button>
+                        <button className={'btn btn-neutral-content'} onClick={handleShowSearchModal}>Close</button>
                       </div>
                   </div>
               </Transition>
