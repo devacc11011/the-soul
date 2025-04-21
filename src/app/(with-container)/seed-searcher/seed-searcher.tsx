@@ -1,18 +1,15 @@
 'use client'
 import Script from "next/script";
-import React, {JSX, ReactNode, useEffect, useState} from "react";
+import React, { useEffect, useState} from "react";
 import Voucher from "@/app/(with-container)/seed-searcher/voucher";
 import Boss from "@/app/(with-container)/seed-searcher/boss";
 import Tag from "@/app/(with-container)/seed-searcher/tag";
 import Card from "@/app/(with-container)/seed-searcher/card";
 import {deckOption, lockOptions, stakeOption, versionOption} from "@/const/SeedOptions";
-import {LockOption} from "@/types/SeedOptionTypes";
+import {LockOption, ShopItem} from "@/types/SeedOptionTypes";
 import PhaseTitle from "@/app/PhaseTitle";
 import Modal from "@/components/modal";
-import style from "./page.module.css"
-import Image from "next/image";
-import searchSvg from '../../../../public/search.svg'
-import {Transition} from "@headlessui/react";
+import SearchModal from "@/app/(with-container)/seed-searcher/search-modal";
 
 export default function SeedSearcher() {
   const [isOpenCheckboxOverray, setOpenCheckboxOverray] = useState(false);
@@ -27,6 +24,7 @@ export default function SeedSearcher() {
   }
   const [isLoading, setIsLoading] = useState(false);
   const [lockOption, setLockOption] = useState<LockOption>(lockOptions);
+  const [extractedShopQueues, setExtractedShopQueues] = useState<ShopItem[]>([]);
   const renderedItems: React.ReactElement[] = []
   const handleCheckboxChange = (key: string) => {
     setLockOption((prevState) => {
@@ -329,17 +327,15 @@ export default function SeedSearcher() {
 
     // Update output box with analysis result
     setoutputBox(() => output)
-    displayShopQueues(output);
+    setExtractedShopQueues(extractShopQueues(output))
     setIsLoading(false);
   }
 
-  type shopItem = {
-    title: string, queue: string[], boss: string, voucher: string, tags: string[], packs: string[]
-  }
+
 
   // Function to extract shop queues from the textarea content
   function extractShopQueues(text: string) {
-    const shopQueues: shopItem[] = [];
+    const shopQueues: ShopItem[] = [];
     const regex = /==ANTE \d+==[\s\S]*?(?=(?:==ANTE \d+==|$))/g;
     const matches = text.match(regex);
 
@@ -366,134 +362,11 @@ export default function SeedSearcher() {
     return shopQueues;
   }
 
-  // Function to separate card names, modifiers, and stickers
-
-
-  const [displayElement, setDisplayElement] = useState<JSX.Element[]>()
-
-
-  // Function to create and display the side-scrolling list
-  function displayShopQueues(ouput: string) {
-    const shopQueues = extractShopQueues(ouput);
-    const shopQueueDisplay: JSX.Element[] = shopQueues.map(({title, queue, boss, voucher, tags, packs}, index) => {
-      return <div className='card bg-base-300 my-2' key={index}>
-        <div className={'card-body'}>
-          <div className='card-title font-semibold text-accent'>{title}</div>
-          <div className='queueInfo card-actions'>
-            <div>
-              <PhaseTitle>Voucher</PhaseTitle>
-              {
-                  voucher && (
-                      <div className='voucherContainer'>
-                        <Voucher voucherName={voucher}/>
-                      </div>
-                  )
-              }
-            </div>
-            <div className='bossElement'>
-              <PhaseTitle>Boss</PhaseTitle>
-              {
-                  boss && <div className='bossContainer'>
-                      <Boss bossName={boss}></Boss>
-                  </div>
-              }
-            </div>
-            <div>
-              <PhaseTitle>Tags</PhaseTitle>
-              <div className={'flex max-w-dvw overflow-x-auto'}>                            {
-                tags.map((tag, index) =>
-                    <Tag tagName={tag} key={index}/>
-                )
-              }
-              </div>
-            </div>
-          </div>
-          <div className={'flex max-w-dvw overflow-x-auto'}>
-            {
-              queue.map((item, index) => {
-                return (
-                    <div className={'queueItem'} key={index}>
-                      <Card itemName={item} key={index}/>
-                    </div>
-                )
-              })
-            }
-          </div>
-          {
-              packs.length > 0 &&
-              <>
-                  <div className='queueTitle'>
-                      ==Packs==
-                  </div>
-                  <div className='packsContainer'>
-                    {
-                      packs.map((pack, index) => {
-                        const packItems = pack.split(' - ');
-                        const packName = packItems[0];
-                        const packCards = packItems[1] ? packItems[1].split(', ') : [];
-                        return <div className={'packName'} key={index}>{packName + ': '}
-                          <div className={'flex max-w-dvw overflow-x-auto'}>
-                            {
-                              packCards.map((cardName, index) =>
-                                  <Card itemName={cardName} key={`${cardName}${index}`}/>
-                              )
-                            }
-                          </div>
-                        </div>
-                      })
-                    }
-                  </div>
-              </>
-          }
-        </div>
-      </div>
-    });
-    setDisplayElement(() => shopQueueDisplay)
-
-    // Add draggable scrolling functionality
-
-  }
-
-  const [searchInput, setSearchInput] = useState('');
-  const [searchOuput, setSearchOuput] = useState<ReactNode>([]);
-
-  function searchCard(): undefined {
-    const tempOutput: React.ReactNode[] = [];
-    setSearchOuput([])
-
-    const shopItems = extractShopQueues(outputBox);
-    for (let i1 = 0; i1 < shopItems.length; i1++) {
-      const item = shopItems[i1];
-      for (let i = 0; i < item.packs.length; i++) {
-        const pack = item.packs[i];
-        if (pack.includes(searchInput)) {
-          tempOutput.push(<li key={`${i1}pack${i}`}>{item.title} {pack}</li>)
-        }
-      }
-      for (let i = 0; i < item.queue.length; i++) {
-        const queue = item.queue[i];
-        if (queue.includes(searchInput)) {
-          tempOutput.push(<li key={`${i1}item${i}`}>{item.title} {queue}</li>)
-        }
-      }
-    }
-    setSearchOuput(tempOutput)
-  }
-
-  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setSearchInput(e.target.value);
-  }
-
   async function copySeed(): Promise<undefined> {
     await navigator.clipboard.writeText(seedInput);
     alert("Copied!");
   }
 
-  const [isShowSearchModal, setShowSearchModal] = useState(false)
-
-  function handleShowSearchModal() {
-    setShowSearchModal(!isShowSearchModal)
-  }
 
   return (<>
         <Script src="/immolate.js" strategy="lazyOnload"/>
@@ -620,34 +493,82 @@ export default function SeedSearcher() {
           </div>
           {/*visual result*/}
           <div className="display-container md:col-span-2">
-            {displayElement}
-          </div>
-          {/*search badge*/}
-          <div className={`${style.searchBadge} badge badge-accent`}
-               onClick={handleShowSearchModal}>
-            <Image src={searchSvg} alt={'search...'}/>
-          </div>
-          {<Transition show={isShowSearchModal}>
-                  <div
-                      className={`${style.searchModal} p-3 md:col-span-2 card bg-neutral   
-                      transition duration-300 ease-in data-[closed]:opacity-0`}>
-                      <div className={'join flex justify-center'}>
-                        <input className={'input join-item'} type='text' value={searchInput}
-                               onChange={handleSearchChange} minLength={4} placeholder='Search Card or Pack'/>
-                        <button className={'btn btn-accent join-item'} onClick={searchCard}>Search</button>
+            {/*{displayElement}*/}
+            {extractedShopQueues.map(({title, queue, boss, voucher, tags, packs}, index) => {
+              return <div className='card bg-base-300 my-2' key={index}>
+                <div className={'card-body'}>
+                  <div className='card-title font-semibold text-accent'>{title}</div>
+                  <div className='queueInfo card-actions'>
+                    <div>
+                      <PhaseTitle>Voucher</PhaseTitle>
+                      {
+                          voucher && (
+                              <div className='voucherContainer'>
+                                <Voucher voucherName={voucher}/>
+                              </div>
+                          )
+                      }
+                    </div>
+                    <div className='bossElement'>
+                      <PhaseTitle>Boss</PhaseTitle>
+                      {
+                          boss && <div className='bossContainer'>
+                              <Boss bossName={boss}></Boss>
+                          </div>
+                      }
+                    </div>
+                    <div>
+                      <PhaseTitle>Tags</PhaseTitle>
+                      <div className={'flex max-w-dvw overflow-x-auto'}>                            {
+                        tags.map((tag, index) =>
+                            <Tag tagName={tag} key={index}/>
+                        )
+                      }
                       </div>
-                      <div className={'overflow-auto'}>
-                        <h2 className={'text-accent text-lg'}>Search Result</h2>
-                        <ul className={`text-neutral-content ${style.searchResult} h-full`}>
-                          {searchOuput}
-                        </ul>
-                      </div>
-                      <div className={'flex justify-end w-full'}>
-                        <button className={'btn btn-neutral-content'} onClick={handleShowSearchModal}>Close</button>
-                      </div>
+                    </div>
                   </div>
-              </Transition>
-          }
+                  <div className={'flex max-w-dvw overflow-x-auto'}>
+                    {
+                      queue.map((item, index) => {
+                        return (
+                            <div className={'queueItem'} key={index}>
+                              <Card itemName={item} key={index}/>
+                            </div>
+                        )
+                      })
+                    }
+                  </div>
+                  {
+                      packs.length > 0 &&
+                      <>
+                          <div className='queueTitle'>
+                              ==Packs==
+                          </div>
+                          <div className='packsContainer'>
+                            {
+                              packs.map((pack, index) => {
+                                const packItems = pack.split(' - ');
+                                const packName = packItems[0];
+                                const packCards = packItems[1] ? packItems[1].split(', ') : [];
+                                return <div className={'packName'} key={index}>{packName + ': '}
+                                  <div className={'flex max-w-dvw overflow-x-auto'}>
+                                    {
+                                      packCards.map((cardName, index) =>
+                                          <Card itemName={cardName} key={`${cardName}${index}`}/>
+                                      )
+                                    }
+                                  </div>
+                                </div>
+                              })
+                            }
+                          </div>
+                      </>
+                  }
+                </div>
+              </div>
+            })}
+          </div>
+          <SearchModal extractedShopQueues={extractedShopQueues} />
         </div>
         {isLoading && <Modal>Analyzing...</Modal>}
       </>

@@ -18,3 +18,6 @@ export type SuitKey = keyof typeof suitMap
 export type ModifierKey = typeof modifiers[number]
 export type StickerKey = typeof stickers[number]
 export type StickerMap = Record<StickerKey, ImgPosition>
+export type ShopItem = {
+    title: string, queue: string[], boss: string, voucher: string, tags: string[], packs: string[]
+}
