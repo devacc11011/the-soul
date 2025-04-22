@@ -212,7 +212,8 @@ export default function SeedSearcher() {
 
 
 
-  return (<>
+  return (
+      <>
         <Script src="/immolate.js" strategy="lazyOnload"/>
         <Script id="module-init" strategy="lazyOnload">
           {`

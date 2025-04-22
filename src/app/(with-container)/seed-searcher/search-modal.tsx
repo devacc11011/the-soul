@@ -55,7 +55,6 @@ export default function SearchModal({extractedShopQueues}:{extractedShopQueues:S
             <button className={'btn btn-accent join-item'} onClick={searchCard}>Search</button>
           </div>
           <div className={'overflow-auto'}>
-            <h2 className={'text-accent text-lg'}>Search Result</h2>
             <ul className={`text-neutral-content ${style.searchResult} h-full`}>
               {searchOuput}
             </ul>
