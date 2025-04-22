@@ -1,182 +1,30 @@
 'use client'
 import Script from "next/script";
-import React, { useEffect, useState} from "react";
-import Voucher from "@/app/(with-container)/seed-searcher/voucher";
-import Boss from "@/app/(with-container)/seed-searcher/boss";
-import Tag from "@/app/(with-container)/seed-searcher/tag";
-import Card from "@/app/(with-container)/seed-searcher/card";
-import {deckOption, lockOptions, stakeOption, versionOption} from "@/const/SeedOptions";
-import {LockOption, ShopItem} from "@/types/SeedOptionTypes";
-import PhaseTitle from "@/app/PhaseTitle";
+import React, { useState} from "react";
+import {AnalSeedConfig, ShopItem} from "@/types/SeedOptionTypes";
 import Modal from "@/components/modal";
 import SearchModal from "@/app/(with-container)/seed-searcher/search-modal";
+import VisualResultPanel from "@/app/(with-container)/seed-searcher/visual-result-panel";
+import TextResultPanel from "@/app/(with-container)/seed-searcher/text-result-panel";
+import SettingPanel from "@/app/(with-container)/seed-searcher/setting-panel";
 
 export default function SeedSearcher() {
-  const [isOpenCheckboxOverray, setOpenCheckboxOverray] = useState(false);
-  const handleOverlay = (onOff?: unknown): undefined => {
-    if (typeof onOff !== "boolean") {
-      setOpenCheckboxOverray(!isOpenCheckboxOverray)
-    } else if (onOff === true) {
-      setOpenCheckboxOverray(true)
-    } else {
-      setOpenCheckboxOverray(false)
-    }
-  }
+
   const [isLoading, setIsLoading] = useState(false);
-  const [lockOption, setLockOption] = useState<LockOption>(lockOptions);
   const [extractedShopQueues, setExtractedShopQueues] = useState<ShopItem[]>([]);
-  const renderedItems: React.ReactElement[] = []
-  const handleCheckboxChange = (key: string) => {
-    setLockOption((prevState) => {
-      // 새로운 객체로 복사하여 불변성을 유지함
-      const newItem = {
-        ...prevState[key],
-        selected: !prevState[key].selected
-      };
-      return {
-        ...prevState,
-        [key]: newItem,
-      };
-    });
-  };
-
-  Object.values(lockOption).forEach((item, index) => {
-    renderedItems.push(
-        <li key={index}>
-          <input className='input' type='checkbox' value={item.name}
-                 checked={item.selected}
-                 onChange={() => handleCheckboxChange(item.name)}/>{item.name}
-        </li>
-    );
-  });// Get references to elements
-
-  const handleUnlock = () => {
-    const newOption: LockOption = {}
-    Object.entries(lockOptions)
-        .map(([key, val]) => {
-          newOption[key] = {
-            name: val.name,
-            selected: true
-          }
-        })
-    saveLock(newOption)
-  }
-  const handleLock = () => {
-    const newOption: LockOption = {}
-    Object.entries(lockOptions)
-        .map(([key, val]) => {
-          newOption[key] = {
-            name: val.name,
-            selected: false
-          }
-        })
-    saveLock(newOption)
-  }
-
-  const saveLock = (newOptions: LockOption) => {
-    setLockOption(() => newOptions);
-    handleOverlay(false)
-  }
-
-  const [seedInput, setseedInput] = useState('ALEEB');
-
-  const handleSeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setseedInput(e.target.value);
-  };
-  const [deckSelect, setdeckSelect] = useState<typeof deckOption[number]>(deckOption[0]);
-  const [stakeSelect, setstakeSelect] = useState<typeof stakeOption[number]>(stakeOption[0]);
-  const [versionSelect, setversionSelect] = useState(versionOption[0].key);
   const [outputBox, setoutputBox] = useState('');
-  const [anteInput, setAnte] = useState(39)
-  const [cardsPerAnteInput, setCardsPerAnte] = useState('50,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150');
 
-  const handleStakeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setstakeSelect(e.target.value as typeof stakeOption[number]);
-  }
-  const handleDeckSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setdeckSelect(e.target.value as typeof deckOption[number]);
-  }
-  const handleAnteInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAnte(e.target.value as unknown as number);
-  }
-  const handleCardsPerAnte = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCardsPerAnte(e.target.value);
-  }
-  const handleVersionSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setversionSelect(e.target.value as unknown as number);
-  }
-
-  function _performAnalysis() {
+  function _performAnalysis(seedConfig:AnalSeedConfig) {
     setIsLoading(true);
     setTimeout(() => {
-      performAnalysis()
+      performAnalysis(seedConfig)
     }, 100)
-    saveConfig()
-    refreshConfig()
   }
 
-  type Config = {
-    [key: string]: {
-      deckSelect: typeof deckOption[number]
-      stakeSelect: typeof stakeOption[number]
-      versionSelect: number
-      anteInput: number
-      cardsPerAnteInput: string
-      lockOption: LockOption,
-      createdTime: number
-    }
-  }
 
-  function saveConfig() {
-    const configs = getConfigs();
-    configs[seedInput] = {
-      deckSelect,
-      stakeSelect,
-      versionSelect,
-      anteInput,
-      cardsPerAnteInput,
-      lockOption,
-      createdTime: new Date().getTime()
-    }
-    localStorage.setItem("configs", JSON.stringify(configs));
-  }
 
-  const [recentConfig, setRecentConfig] = useState<Config>({})
-
-  function refreshConfig() {
-    const config = getConfigs();
-    setRecentConfig(config)
-
-  }
-
-  function getConfigs() {
-    return (JSON.parse(localStorage.getItem('configs') ?? '{}')) as unknown as Config
-  }
-
-  useEffect(() => {
-    refreshConfig()
-  }, []);
-
-  function loadConfig(seed: string): undefined {
-    const loadedInput = recentConfig[seed]
-    const {
-      deckSelect,
-      stakeSelect,
-      versionSelect,
-      anteInput,
-      cardsPerAnteInput,
-      lockOption
-    } = loadedInput
-    setseedInput(seed)
-    setdeckSelect(deckSelect)
-    setstakeSelect(stakeSelect)
-    setversionSelect(versionSelect)
-    setAnte(anteInput)
-    setCardsPerAnte(cardsPerAnteInput)
-    setLockOption(lockOption)
-  }
-
-  function performAnalysis() {
+  function performAnalysis({seedInput,lockOption,cardsPerAnteInput,anteInput,
+                             versionSelect,stakeSelect,deckSelect}:AnalSeedConfig) {
     setIsLoading(true);
     // Get input values
     const ante = anteInput;
@@ -332,7 +180,6 @@ export default function SeedSearcher() {
   }
 
 
-
   // Function to extract shop queues from the textarea content
   function extractShopQueues(text: string) {
     const shopQueues: ShopItem[] = [];
@@ -362,10 +209,7 @@ export default function SeedSearcher() {
     return shopQueues;
   }
 
-  async function copySeed(): Promise<undefined> {
-    await navigator.clipboard.writeText(seedInput);
-    alert("Copied!");
-  }
+
 
 
   return (<>
@@ -393,182 +237,10 @@ export default function SeedSearcher() {
                 `}
         </Script>
         <div className="grid grid-cols-1 md:grid-cols-2  gap-2">
-          {/*recent config*/}
-          <div className='card bg-base-300 p-3 md:col-span-2'>
-            <h1 className='text-accent font-semibold'>Recent</h1>
-            <ul className={'flex overflow-x-auto'}>
-              {Object.entries(recentConfig)
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                  .sort(([key, val], [key2, val2]) =>
-                      val2.createdTime - val.createdTime)
-                  .map(([key], index) =>
-                      <li key={index} className={'mx-2 clickable'}
-                          onClick={loadConfig.bind(null, key)}>{key}</li>)}
-            </ul>
-          </div>
-          {/*setting*/}
-          <div className="card bg-base-300 p-3">
-            <h1 className='text-accent font-semibold'>Settings</h1>
-            <label className='label' htmlFor="seed">Seed</label>
-            <div className={'join'}>
-              <input className='input join-item' type="text" maxLength={8} pattern="[A-Z1-9]{1,8}" required
-                     value={seedInput}
-                     onChange={handleSeedChange}/>
-              <button className={'btn btn-secondary join-item'} onClick={copySeed}>Copy</button>
-            </div>
-            <br/>
-            <label className='label' htmlFor="ante">Max Ante:</label>
-            <input className='input' type="number" value={anteInput} onChange={handleAnteInput} min="1"
-                   max="999" required/>
-            <br/>
-            <label className='label' htmlFor="cardsPerAnte">Cards per Ante:</label>
-            <input className='input' type="text" id="cardsPerAnte"
-                   value={cardsPerAnteInput}
-                   onChange={handleCardsPerAnte}
-                   required/>
-            <br/>
-            <label className='label' htmlFor="deck">Deck:</label>
-            <select className='select' required onChange={handleDeckSelect}
-                    value={deckSelect}>
-              {
-                deckOption.map((option) =>
-                    <option key={option} value={option}>{option}</option>
-                )
-              }
-            </select>
-            <br/>
-            <label className='label' htmlFor="stake">Stake:</label>
-            <select className='select' value={stakeSelect} required onChange={handleStakeSelect}>
-              {
-                stakeOption.map((option, index) =>
-                    <option key={index} value={option}>{option}</option>
-                )
-              }
-            </select>
-            <br/>
-            <label className='label' htmlFor="version">Version:</label>
-            <select className='select' id="version" required
-                    value={versionSelect}
-                    onChange={handleVersionSelect}>
-              {
-                versionOption.map((option) =>
-                    <option key={option.key} value={option.key}>{option.name}</option>
-                )
-              }
-            </select>
-            <br/>
-            <button className='btn btn-primary btn-outline' onClick={handleOverlay}>Modify Unlocks</button>
-            {isOpenCheckboxOverray && <div>
-                <div className='flex'>
-                    <button className='btn btn-secondary grow m-1' onClick={handleUnlock}>Unlock All</button>
-                    <button className='btn btn-secondary grow m-1' onClick={handleLock}>Lock All</button>
-                </div>
-                <div id="checkboxesPopup">
-                    <h2>Unlocked Items</h2>
-                    <ul className='list-group'>
-                      {/*{renderedItems}*/}
-                      {Object.entries(lockOption).map(([key, data]) => (
-                          <li key={key}>
-                            <input className='checkbox'
-                                   type="checkbox"
-                                   id={key}
-                                   checked={lockOption[key].selected}
-                                   onChange={() => handleCheckboxChange(key)}
-                            />
-                            {/* JSX에서는 label의 for 속성이 아니라 htmlFor를 사용해야 함 */}
-                            <label className='label' htmlFor={key}>{data.name}</label>
-                          </li>
-                      ))}
-                    </ul>
-                </div>
-            </div>}
-            <br/>
-            <button onClick={_performAnalysis} className={'btn btn-primary'}>Analyze</button>
-          </div>
-          {/*analyze result*/}
-          <div className="card bg-base-300 p-3">
-            <h1 className='text-accent font-semibold'>Output</h1>
-            <textarea value={outputBox} rows={16} readOnly
-                      className='textarea w-full h-full whitespace-pre-wrap'></textarea>
-          </div>
-          {/*visual result*/}
-          <div className="display-container md:col-span-2">
-            {/*{displayElement}*/}
-            {extractedShopQueues.map(({title, queue, boss, voucher, tags, packs}, index) => {
-              return <div className='card bg-base-300 my-2' key={index}>
-                <div className={'card-body'}>
-                  <div className='card-title font-semibold text-accent'>{title}</div>
-                  <div className='queueInfo card-actions'>
-                    <div>
-                      <PhaseTitle>Voucher</PhaseTitle>
-                      {
-                          voucher && (
-                              <div className='voucherContainer'>
-                                <Voucher voucherName={voucher}/>
-                              </div>
-                          )
-                      }
-                    </div>
-                    <div className='bossElement'>
-                      <PhaseTitle>Boss</PhaseTitle>
-                      {
-                          boss && <div className='bossContainer'>
-                              <Boss bossName={boss}></Boss>
-                          </div>
-                      }
-                    </div>
-                    <div>
-                      <PhaseTitle>Tags</PhaseTitle>
-                      <div className={'flex max-w-dvw overflow-x-auto'}>                            {
-                        tags.map((tag, index) =>
-                            <Tag tagName={tag} key={index}/>
-                        )
-                      }
-                      </div>
-                    </div>
-                  </div>
-                  <div className={'flex max-w-dvw overflow-x-auto'}>
-                    {
-                      queue.map((item, index) => {
-                        return (
-                            <div className={'queueItem'} key={index}>
-                              <Card itemName={item} key={index}/>
-                            </div>
-                        )
-                      })
-                    }
-                  </div>
-                  {
-                      packs.length > 0 &&
-                      <>
-                          <div className='queueTitle'>
-                              ==Packs==
-                          </div>
-                          <div className='packsContainer'>
-                            {
-                              packs.map((pack, index) => {
-                                const packItems = pack.split(' - ');
-                                const packName = packItems[0];
-                                const packCards = packItems[1] ? packItems[1].split(', ') : [];
-                                return <div className={'packName'} key={index}>{packName + ': '}
-                                  <div className={'flex max-w-dvw overflow-x-auto'}>
-                                    {
-                                      packCards.map((cardName, index) =>
-                                          <Card itemName={cardName} key={`${cardName}${index}`}/>
-                                      )
-                                    }
-                                  </div>
-                                </div>
-                              })
-                            }
-                          </div>
-                      </>
-                  }
-                </div>
-              </div>
-            })}
-          </div>
-          <SearchModal extractedShopQueues={extractedShopQueues} />
+          <SettingPanel performAnalysis={_performAnalysis}/>
+          <TextResultPanel shopQueues={outputBox}/>
+          <VisualResultPanel extractedShopQueues={extractedShopQueues} />
+          <SearchModal extractedShopQueues={extractedShopQueues}/>
         </div>
         {isLoading && <Modal>Analyzing...</Modal>}
       </>
