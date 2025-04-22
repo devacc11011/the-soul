@@ -153,6 +153,15 @@ export default function SettingPanel({performAnalysis}: { performAnalysis: (seed
     refreshConfig()
   }
 
+  //reactive anteinput
+  useEffect(() => {
+    let str = '50'
+    for (let i = 1; i < anteInput; i++) {
+      str += ',150'
+    }
+    setCardsPerAnte(str)
+  }, [anteInput]);
+
   return <>
     <div className='card bg-base-300 p-3 md:col-span-2'>
       <h1 className='text-accent font-semibold'>Recent</h1>
